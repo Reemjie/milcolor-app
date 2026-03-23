@@ -2,9 +2,37 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 
-const JOURS = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi']
-const TRANCHES = ['Matin (9h-12h)', 'Repas (12h-14h)', 'Après-midi (14h-17h)']
 const COLORS = ['#FF6B35', '#FFD166', '#06D6A0', '#118AB2', '#FF6B9D', '#9B5DE5']
+
+function resizeImage(file) {
+  return new Promise(resolve => {
+    const reader = new FileReader()
+    reader.onload = e => {
+      const img = new Image()
+      img.onload = () => {
+        const attempts = [
+          { maxW: 1400, q: 0.85 },
+          { maxW: 1100, q: 0.78 },
+          { maxW: 900,  q: 0.70 },
+          { maxW: 700,  q: 0.62 },
+        ]
+        let dataUrl = null
+        for (const { maxW, q } of attempts) {
+          let w = img.width, h = img.height
+          if (w > maxW) { h = Math.round(h * maxW / w); w = maxW }
+          const c = document.createElement('canvas')
+          c.width = w; c.height = h
+          c.getContext('2d').drawImage(img, 0, 0, w, h)
+          dataUrl = c.toDataURL('image/jpeg', q)
+          if (dataUrl.length < 2_500_000) break
+        }
+        resolve(dataUrl)
+      }
+      img.src = e.target.result
+    }
+    reader.readAsDataURL(file)
+  })
+}
 
 export default function Plannings() {
   const { isAdmin } = useAuth()
@@ -13,7 +41,10 @@ export default function Plannings() {
   const [showForm, setShowForm] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [activeSemaine, setActiveSemaine] = useState(0)
-  const [form, setForm] = useState({ titre: '', date_debut: '', couleur: COLORS[0], slots: {} })
+  const [form, setForm] = useState({ titre: '', date_debut: '', couleur: COLORS[0], photo_url: '' })
+  const [photoPreview, setPhotoPreview] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [fullscreen, setFullscreen] = useState(false)
 
   useEffect(() => { fetchSemaines() }, [])
 
@@ -24,56 +55,71 @@ export default function Plannings() {
     setLoading(false)
   }
 
+  async function handlePhoto(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const dataUrl = await resizeImage(file)
+    setPhotoPreview(dataUrl)
+    setForm(f => ({ ...f, photo_url: dataUrl }))
+  }
+
   async function saveSemaine() {
+    if (!form.titre) return
+    setSaving(true)
     const payload = {
       titre: form.titre,
-      date_debut: form.date_debut,
+      date_debut: form.date_debut || null,
       couleur: form.couleur,
-      slots: form.slots,
+      photo_url: form.photo_url || null,
+      slots: {},
     }
     if (editItem) {
       await supabase.from('plannings').update(payload).eq('id', editItem.id)
     } else {
       await supabase.from('plannings').insert([payload])
     }
+    setSaving(false)
     setShowForm(false)
     setEditItem(null)
-    setForm({ titre: '', date_debut: '', couleur: COLORS[0], slots: {} })
+    setForm({ titre: '', date_debut: '', couleur: COLORS[0], photo_url: '' })
+    setPhotoPreview(null)
     fetchSemaines()
   }
 
   async function deleteSemaine(id) {
-    if (!confirm('Supprimer cette semaine ?')) return
+    if (!confirm('Supprimer ce planning ?')) return
     await supabase.from('plannings').delete().eq('id', id)
+    setActiveSemaine(0)
     fetchSemaines()
   }
 
   function openEdit(s) {
     setEditItem(s)
-    setForm({ titre: s.titre, date_debut: s.date_debut, couleur: s.couleur, slots: s.slots || {} })
+    setForm({ titre: s.titre, date_debut: s.date_debut || '', couleur: s.couleur, photo_url: s.photo_url || '' })
+    setPhotoPreview(s.photo_url || null)
     setShowForm(true)
   }
 
-  function setSlot(jour, tranche, value) {
-    setForm(f => ({ ...f, slots: { ...f.slots, [`${jour}_${tranche}`]: value } }))
+  function openNew() {
+    setEditItem(null)
+    setForm({ titre: '', date_debut: '', couleur: COLORS[0], photo_url: '' })
+    setPhotoPreview(null)
+    setShowForm(true)
   }
 
   const sem = semaines[activeSemaine]
 
   return (
     <div className="page-enter" style={{ padding: '20px 16px' }}>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem', color: 'var(--text)' }}>📅 Plannings</h1>
+          <h1 style={{ fontSize: '1.6rem' }}>📅 Plannings</h1>
           <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>
             {semaines.length} semaine{semaines.length > 1 ? 's' : ''}
           </p>
         </div>
         {isAdmin && (
-          <button className="btn btn-primary" onClick={() => { setEditItem(null); setForm({ titre: '', date_debut: '', couleur: COLORS[0], slots: {} }); setShowForm(true) }}>
-            + Semaine
-          </button>
+          <button className="btn btn-primary" onClick={openNew}>+ Semaine</button>
         )}
       </div>
 
@@ -89,148 +135,143 @@ export default function Plannings() {
 
       {!loading && semaines.length > 0 && (
         <>
-          {/* Week selector */}
           <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4, marginBottom: 20 }}>
             {semaines.map((s, i) => (
-              <button
-                key={s.id}
-                onClick={() => setActiveSemaine(i)}
-                style={{
-                  flexShrink: 0,
-                  padding: '8px 16px',
-                  borderRadius: 20,
-                  border: `2px solid ${activeSemaine === i ? s.couleur : 'var(--border)'}`,
-                  background: activeSemaine === i ? s.couleur : 'white',
-                  color: activeSemaine === i ? 'white' : 'var(--text)',
-                  fontWeight: 700,
-                  fontSize: '0.85rem',
-                  transition: 'all 0.2s',
-                }}
-              >
+              <button key={s.id} onClick={() => setActiveSemaine(i)} style={{
+                flexShrink: 0, padding: '8px 16px', borderRadius: 20,
+                border: `2px solid ${activeSemaine === i ? s.couleur : 'var(--border)'}`,
+                background: activeSemaine === i ? s.couleur : 'white',
+                color: activeSemaine === i ? 'white' : 'var(--text)',
+                fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.2s',
+              }}>
                 {s.titre}
               </button>
             ))}
           </div>
 
-          {/* Active week grid */}
           {sem && (
-            <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+            <div className="card" style={{ overflow: 'hidden' }}>
               <div style={{
-                background: sem.couleur,
-                padding: '14px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                background: sem.couleur, padding: '14px 20px',
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               }}>
                 <div>
                   <div style={{ color: 'white', fontFamily: 'Fredoka', fontSize: '1.2rem' }}>{sem.titre}</div>
                   {sem.date_debut && (
                     <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.8rem' }}>
-                      Semaine du {new Date(sem.date_debut).toLocaleDateString('fr-FR')}
+                      Semaine du {new Date(sem.date_debut + 'T00:00:00').toLocaleDateString('fr-FR')}
                     </div>
                   )}
                 </div>
                 {isAdmin && (
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <button onClick={() => openEdit(sem)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '6px 10px', color: 'white', fontWeight: 700, fontSize: '0.8rem' }}>✏️ Modifier</button>
-                    <button onClick={() => deleteSemaine(sem.id)} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: 8, padding: '6px 10px', color: 'white', fontWeight: 700, fontSize: '0.8rem' }}>🗑</button>
+                    <button onClick={() => openEdit(sem)} style={{
+                      background: 'rgba(255,255,255,0.2)', border: 'none',
+                      borderRadius: 8, padding: '6px 12px', color: 'white', fontWeight: 700, fontSize: '0.8rem',
+                    }}>✏️ Modifier</button>
+                    <button onClick={() => deleteSemaine(sem.id)} style={{
+                      background: 'rgba(255,255,255,0.2)', border: 'none',
+                      borderRadius: 8, padding: '6px 10px', color: 'white', fontWeight: 700, fontSize: '0.8rem',
+                    }}>🗑</button>
                   </div>
                 )}
               </div>
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 500 }}>
-                  <thead>
-                    <tr style={{ background: 'var(--bg)' }}>
-                      <th style={{ padding: '10px 12px', textAlign: 'left', fontSize: '0.78rem', color: 'var(--text2)', fontWeight: 700, borderBottom: '1px solid var(--border)' }}>Créneau</th>
-                      {JOURS.map(j => (
-                        <th key={j} style={{ padding: '10px 8px', textAlign: 'center', fontSize: '0.78rem', color: 'var(--text2)', fontWeight: 700, borderBottom: '1px solid var(--border)' }}>{j}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {TRANCHES.map((t, ti) => (
-                      <tr key={t} style={{ background: ti % 2 === 0 ? 'white' : 'var(--bg)' }}>
-                        <td style={{ padding: '10px 12px', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text2)', borderBottom: '1px solid var(--border)', whiteSpace: 'nowrap' }}>{t}</td>
-                        {JOURS.map(j => (
-                          <td key={j} style={{ padding: '8px', textAlign: 'center', borderBottom: '1px solid var(--border)', fontSize: '0.82rem' }}>
-                            {sem.slots?.[`${j}_${t}`] || <span style={{ color: 'var(--border)' }}>—</span>}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+
+              {sem.photo_url ? (
+                <div style={{ position: 'relative' }}>
+                  <img src={sem.photo_url} alt={sem.titre} onClick={() => setFullscreen(true)} style={{
+                    width: '100%', display: 'block', cursor: 'zoom-in',
+                    maxHeight: 500, objectFit: 'contain', background: '#f8f8f8',
+                  }} />
+                  <button onClick={() => setFullscreen(true)} style={{
+                    position: 'absolute', bottom: 10, right: 10,
+                    background: 'rgba(0,0,0,0.55)', color: 'white',
+                    border: 'none', borderRadius: 8, padding: '6px 12px',
+                    fontSize: '0.78rem', fontWeight: 700,
+                  }}>🔍 Agrandir</button>
+                </div>
+              ) : (
+                <div style={{ padding: '50px 20px', textAlign: 'center', color: 'var(--text2)', background: 'var(--bg)' }}>
+                  <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>🖼️</div>
+                  <p style={{ fontWeight: 700 }}>Pas encore d'image</p>
+                  {isAdmin && <p style={{ fontSize: '0.82rem', marginTop: 4 }}>Clique sur ✏️ Modifier pour uploader</p>}
+                </div>
+              )}
             </div>
           )}
         </>
       )}
 
-      {/* Modal form */}
+      {fullscreen && sem?.photo_url && (
+        <div onClick={() => setFullscreen(false)} style={{
+          position: 'fixed', inset: 0, zIndex: 300,
+          background: 'rgba(0,0,0,0.95)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }}>
+          <button onClick={() => setFullscreen(false)} style={{
+            position: 'absolute', top: 20, right: 20,
+            background: 'rgba(255,255,255,0.15)', border: 'none',
+            borderRadius: 10, padding: '8px 16px', color: 'white', fontWeight: 700,
+          }}>✕ Fermer</button>
+          <img src={sem.photo_url} alt={sem.titre} style={{ maxWidth: '100%', maxHeight: '90dvh', objectFit: 'contain' }} />
+        </div>
+      )}
+
       {showForm && (
         <div style={{
-          position: 'fixed', inset: 0,
-          background: 'rgba(0,0,0,0.5)',
-          zIndex: 200,
-          display: 'flex',
-          alignItems: 'flex-end',
-        }}
-          onClick={e => e.target === e.currentTarget && setShowForm(false)}
-        >
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+          zIndex: 200, display: 'flex', alignItems: 'flex-end',
+        }} onClick={e => e.target === e.currentTarget && setShowForm(false)}>
           <div style={{
-            background: 'white',
-            borderRadius: '24px 24px 0 0',
-            padding: '24px 20px',
-            width: '100%',
-            maxHeight: '90dvh',
-            overflowY: 'auto',
+            background: 'white', borderRadius: '24px 24px 0 0',
+            padding: '24px 20px', width: '100%', maxHeight: '90dvh', overflowY: 'auto',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h2 style={{ fontSize: '1.3rem' }}>{editItem ? 'Modifier' : 'Nouvelle'} semaine</h2>
+              <h2 style={{ fontSize: '1.3rem' }}>{editItem ? 'Modifier' : 'Nouveau'} planning</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'var(--bg)', border: 'none', borderRadius: 8, padding: '6px 12px', fontWeight: 700 }}>✕</button>
             </div>
 
-            <label style={labelStyle}>Titre de la semaine</label>
-            <input value={form.titre} onChange={e => setForm(f => ({...f, titre: e.target.value}))} placeholder="ex: Semaine 1 — Printemps" style={inputStyle} />
+            <label style={labelStyle}>Titre *</label>
+            <input value={form.titre} onChange={e => setForm(f => ({ ...f, titre: e.target.value }))}
+              placeholder="ex: Semaine 1 — Printemps" style={inputStyle} />
 
-            <label style={labelStyle}>Date de début</label>
-            <input type="date" value={form.date_debut} onChange={e => setForm(f => ({...f, date_debut: e.target.value}))} style={inputStyle} />
+            <label style={labelStyle}>Date de début (optionnel)</label>
+            <input type="date" value={form.date_debut} onChange={e => setForm(f => ({ ...f, date_debut: e.target.value }))} style={inputStyle} />
 
             <label style={labelStyle}>Couleur</label>
-            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+            <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
               {COLORS.map(c => (
-                <button key={c} onClick={() => setForm(f => ({...f, couleur: c}))}
-                  style={{ width: 32, height: 32, borderRadius: '50%', background: c, border: form.couleur === c ? '3px solid var(--text)' : '3px solid transparent', cursor: 'pointer' }} />
+                <button key={c} onClick={() => setForm(f => ({ ...f, couleur: c }))} style={{
+                  width: 34, height: 34, borderRadius: '50%', background: c,
+                  border: form.couleur === c ? '3px solid var(--text)' : '3px solid transparent', cursor: 'pointer',
+                }} />
               ))}
             </div>
 
-            <label style={labelStyle}>Contenu du planning</label>
-            {TRANCHES.map(t => (
-              <div key={t} style={{ marginBottom: 16 }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text2)', marginBottom: 8 }}>{t}</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6 }}>
-                  {JOURS.map(j => (
-                    <div key={j}>
-                      <div style={{ fontSize: '0.68rem', color: 'var(--text2)', textAlign: 'center', marginBottom: 3 }}>{j}</div>
-                      <input
-                        value={form.slots[`${j}_${t}`] || ''}
-                        onChange={e => setSlot(j, t, e.target.value)}
-                        placeholder="…"
-                        style={{ ...inputStyle, padding: '6px 8px', fontSize: '0.78rem', marginBottom: 0, textAlign: 'center' }}
-                      />
-                    </div>
-                  ))}
+            <label style={labelStyle}>Image du planning</label>
+            {photoPreview ? (
+              <div style={{ marginBottom: 16 }}>
+                <img src={photoPreview} alt="" style={{ width: '100%', borderRadius: 12, maxHeight: 300, objectFit: 'contain', background: '#f8f8f8' }} />
+                <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                  <label style={{ flex: 1, textAlign: 'center', padding: '10px', background: 'var(--bg)', borderRadius: 10, border: '2px solid var(--border)', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', color: 'var(--text2)' }}>
+                    📷 Changer
+                    <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
+                  </label>
+                  <button onClick={() => { setPhotoPreview(null); setForm(f => ({ ...f, photo_url: '' })) }} style={{ padding: '10px 16px', background: '#fff0f0', border: '2px solid #f5c6cb', borderRadius: 10, fontWeight: 700, fontSize: '0.82rem', color: '#e74c3c' }}>🗑</button>
                 </div>
               </div>
-            ))}
+            ) : (
+              <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '32px 20px', border: '2px dashed var(--border)', borderRadius: 14, cursor: 'pointer', color: 'var(--text2)', background: 'var(--bg)', marginBottom: 16 }}>
+                <span style={{ fontSize: '2.5rem' }}>📷</span>
+                <span style={{ fontWeight: 700 }}>Uploader l'image du planning</span>
+                <span style={{ fontSize: '0.78rem' }}>Photo ou scan du planning papier</span>
+                <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
+              </label>
+            )}
 
-            <button
-              className="btn btn-primary"
-              style={{ width: '100%', padding: '14px', marginTop: 8 }}
-              onClick={saveSemaine}
-              disabled={!form.titre}
-            >
-              💾 Enregistrer
+            <button className="btn btn-primary" style={{ width: '100%', padding: '14px', opacity: (!form.titre || saving) ? 0.6 : 1 }}
+              onClick={saveSemaine} disabled={!form.titre || saving}>
+              {saving ? '⏳ Enregistrement…' : '💾 Enregistrer'}
             </button>
           </div>
         </div>
@@ -240,8 +281,4 @@ export default function Plannings() {
 }
 
 const labelStyle = { display: 'block', marginBottom: 6, fontWeight: 700, fontSize: '0.85rem' }
-const inputStyle = {
-  width: '100%', padding: '12px 14px', borderRadius: 10,
-  border: '2px solid var(--border)', fontSize: '0.9rem',
-  marginBottom: 16, background: 'var(--bg)',
-}
+const inputStyle = { width: '100%', padding: '12px 14px', borderRadius: 10, border: '2px solid var(--border)', fontSize: '0.9rem', marginBottom: 16, background: 'var(--bg)' }
