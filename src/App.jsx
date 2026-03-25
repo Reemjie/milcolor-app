@@ -2,11 +2,19 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './lib/auth'
 import Login from './pages/Login'
 import Layout from './components/Layout'
+import Accueil from './pages/Accueil'
 import Plannings from './pages/Plannings'
-import Activites from './pages/Activites'
+import JourneeType from './pages/JourneeType'
+import Objectifs from './pages/Objectifs'
+import SessionEnCours from './pages/SessionEnCours'
+import BanqueAnimations from './pages/BanqueAnimations'
+import AnimationsRapides from './pages/AnimationsRapides'
 import ActiviteForm from './pages/ActiviteForm'
-import Remarques from './pages/Remarques'
+import Chat from './pages/Chat'
 import Documents from './pages/Documents'
+import Urgences from './pages/Urgences'
+import Materiel from './pages/Materiel'
+import Notifications from './pages/Notifications'
 
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth()
@@ -18,13 +26,21 @@ export default function App() {
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route index element={<Navigate to="/plannings" replace />} />
+        <Route index element={<Navigate to="/accueil" replace />} />
+        <Route path="accueil" element={<Accueil />} />
         <Route path="plannings" element={<Plannings />} />
-        <Route path="activites" element={<Activites />} />
-        <Route path="activites/nouvelle" element={<ActiviteForm />} />
-        <Route path="activites/:id" element={<ActiviteForm />} />
-        <Route path="remarques" element={<Remarques />} />
+        <Route path="journee-type" element={<JourneeType />} />
+        <Route path="objectifs" element={<Objectifs />} />
+        <Route path="session" element={<SessionEnCours />} />
+        <Route path="banque" element={<BanqueAnimations />} />
+        <Route path="banque/nouvelle" element={<ActiviteForm />} />
+        <Route path="banque/:id" element={<ActiviteForm />} />
+        <Route path="rapides" element={<AnimationsRapides />} />
+        <Route path="chat" element={<Chat />} />
         <Route path="documents" element={<Documents />} />
+        <Route path="urgences" element={<Urgences />} />
+        <Route path="materiel" element={<Materiel />} />
+        <Route path="notifications" element={<Notifications />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
