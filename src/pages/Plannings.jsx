@@ -184,7 +184,7 @@ export default function Plannings() {
 
       {showForm && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={e => e.target === e.currentTarget && setShowForm(false)}>
-          <div style={{ background: 'white', borderRadius: '24px 24px 0 0', padding: '24px 20px', width: '100%', maxHeight: '92dvh', overflowY: 'auto' }}>
+          <div style={{ background: 'white', borderRadius: '24px 24px 0 0', padding: '0', width: '100%', maxHeight: '85dvh', overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
               <h2 style={{ fontSize: '1.3rem' }}>{editItem ? '✏️ Modifier' : '➕ Nouveau'} planning</h2>
