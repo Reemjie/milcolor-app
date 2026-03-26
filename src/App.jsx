@@ -16,6 +16,7 @@ import Urgences from './pages/Urgences'
 import Materiel from './pages/Materiel'
 import Notifications from './pages/Notifications'
 import Bilan from './pages/Bilan'
+import ListeMateriel from './pages/ListeMateriel'
 import BilansList from './pages/BilansList'
 
 function ProtectedRoute({ children }) {
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="bilans" element={<BilansList />} />
         <Route path="bilans/nouveau" element={<Bilan />} />
         <Route path="bilans/:id" element={<Bilan />} />
+        <Route path="materiel-session" element={<ListeMateriel />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
