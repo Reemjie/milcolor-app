@@ -80,6 +80,15 @@ export default function BanqueAnimations() {
           }}>{t === 'all' ? 'Toutes' : `${TYPE_ICONS[t]} ${t}`}</button>
         ))}
         <div style={{ width: 1, background: 'var(--border)', flexShrink: 0 }} />
+        {[...new Set(activites.map(a => a.animateur))].sort().map(anim => (
+          <button key={anim} onClick={() => setFilterAnim(filterAnim === anim ? 'all' : anim)} style={{
+            flexShrink: 0, padding: '6px 12px', borderRadius: 20,
+            border: `2px solid ${filterAnim === anim ? '#FF6B9D' : 'var(--border)'}`,
+            background: filterAnim === anim ? '#FF6B9D' : 'white',
+            color: filterAnim === anim ? 'white' : 'var(--text)',
+            fontWeight: 700, fontSize: '0.75rem',
+          }}>👤 {anim}</button>
+        ))}
         {['all', '3-5 ans', '6-11 ans'].map(a => (
           <button key={a} onClick={() => setFilterAge(a)} style={{
             flexShrink: 0, padding: '6px 12px', borderRadius: 20,
