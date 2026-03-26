@@ -55,7 +55,7 @@ export default function BanqueAnimations() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>
         {[
           { to: '/session', label: '📋 Session' },
-          { to: '/banque', label: '🗂 Catalogue d'animations', active: true },
+          { to: '/banque', label: "🗂 Catalogue d'animations", active: true },
           { to: '/rapides', label: '⚡ Rapides' },
         ].map(item => (
           <button key={item.to} onClick={() => navigate(item.to)} style={{
