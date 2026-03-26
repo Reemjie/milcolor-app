@@ -132,15 +132,15 @@ export default function Accueil() {
           </div>
         </button>
 
-        <button onClick={() => navigate('/objectifs')} style={{
-          background: '#E0FBF1', border: '2px solid #06D6A0',
+        <button onClick={() => navigate('/documents')} style={{
+          background: '#f5f5f5', border: '2px solid #ccc',
           borderRadius: 14, padding: '14px 16px',
           display: 'flex', alignItems: 'center', gap: 12,
         }}>
-          <span style={{ fontSize: '1.5rem' }}>🎯</span>
+          <span style={{ fontSize: '1.5rem' }}>📁</span>
           <div style={{ textAlign: 'left' }}>
-            <div style={{ fontWeight: 700, color: '#0A7A5A' }}>Objectifs de la session</div>
-            <div style={{ fontSize: '0.78rem', color: '#0A7A5A' }}>Rappel des priorités du directeur</div>
+            <div style={{ fontWeight: 700, color: '#636E72' }}>Documents divers</div>
+            <div style={{ fontSize: '0.78rem', color: '#636E72' }}>PDFs et ressources partagées</div>
           </div>
         </button>
       </div>
