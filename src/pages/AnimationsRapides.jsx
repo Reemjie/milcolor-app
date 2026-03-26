@@ -49,7 +49,7 @@ export default function AnimationsRapides() {
 
       {/* Sub-nav */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {[{ to: '/session', label: '📋 Session' }, { to: '/banque', label: '🗂 Catalogue' }, { to: '/rapides', label: '⚡ Rapides', active: true }].map(item => (
+        {[{ to: '/session', label: '📋 Session' }, { to: '/banque', label: '🗂 Catalogue d'animations' }, { to: '/rapides', label: '⚡ Rapides', active: true }].map(item => (
           <button key={item.to} onClick={() => navigate(item.to)} style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 20, border: `2px solid ${item.active ? 'var(--orange)' : 'var(--border)'}`, background: item.active ? 'var(--orange)' : 'white', color: item.active ? 'white' : 'var(--text)', fontWeight: 700, fontSize: '0.82rem' }}>{item.label}</button>
         ))}
       </div>

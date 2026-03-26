@@ -58,7 +58,7 @@ export default function SessionEnCours() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
         {[
           { to: '/session', label: '📋 En cours', active: true },
-          { to: '/banque', label: '🗂 Catalogue' },
+          { to: '/banque', label: '🗂 Catalogue d'animations' },
           { to: '/rapides', label: '⚡ Rapides' },
         ].map(item => (
           <button key={item.to} onClick={() => navigate(item.to)} style={{
