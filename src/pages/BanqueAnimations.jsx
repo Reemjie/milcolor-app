@@ -18,30 +18,34 @@ export default function BanqueAnimations() {
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState('all')
   const [filterAge, setFilterAge] = useState('all')
+  const [filterAnim, setFilterAnim] = useState('all')
   const [search, setSearch] = useState('')
 
   useEffect(() => { fetchActivites() }, [])
 
   async function fetchActivites() {
     setLoading(true)
-    const { data } = await supabase.from('activites').select('*').order('created_at', { ascending: false })
+    const { data } = await supabase.from('activites').select('*').order('animateur', { ascending: true })
     setActivites(data || [])
     setLoading(false)
   }
 
+  const animateurs = [...new Set(activites.map(a => a.animateur).filter(Boolean))].sort()
+
   const filtered = activites.filter(a => {
     const typeOk = filterType === 'all' || a.type === filterType
     const ageOk = filterAge === 'all' || a.age === filterAge
+    const animOk = filterAnim === 'all' || a.animateur === filterAnim
     const q = search.toLowerCase()
     const searchOk = !q || a.nom?.toLowerCase().includes(q) || a.animateur?.toLowerCase().includes(q)
-    return typeOk && ageOk && searchOk
+    return typeOk && ageOk && animOk && searchOk
   })
 
   return (
     <div className="page-enter" style={{ padding: '20px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem' }}>🗂 Catalogue d'animations</h1>
+          <h1 style={{ fontSize: '1.6rem' }}>🗂 Catalogue</h1>
           <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>{filtered.length} activité{filtered.length > 1 ? 's' : ''}</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
@@ -64,12 +68,15 @@ export default function BanqueAnimations() {
         ))}
       </div>
 
+      {/* Search */}
       <div style={{ position: 'relative', marginBottom: 10 }}>
         <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>🔍</span>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…" style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: 12, border: '2px solid var(--border)', fontSize: '0.9rem', background: 'white' }} />
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…"
+          style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: 12, border: '2px solid var(--border)', fontSize: '0.9rem', background: 'white' }} />
       </div>
 
-      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+      {/* Filtres type */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
         {['all', 'Jeux', 'Jeu de 11h', 'Activité manuelle', 'Temps calme'].map(t => (
           <button key={t} onClick={() => setFilterType(t)} style={{
             flexShrink: 0, padding: '6px 12px', borderRadius: 20,
@@ -79,16 +86,10 @@ export default function BanqueAnimations() {
             fontWeight: 700, fontSize: '0.75rem',
           }}>{t === 'all' ? 'Toutes' : `${TYPE_ICONS[t]} ${t}`}</button>
         ))}
-        <div style={{ width: 1, background: 'var(--border)', flexShrink: 0 }} />
-        {[...new Set(activites.map(a => a.animateur))].sort().map(anim => (
-          <button key={anim} onClick={() => setFilterAnim(filterAnim === anim ? 'all' : anim)} style={{
-            flexShrink: 0, padding: '6px 12px', borderRadius: 20,
-            border: `2px solid ${filterAnim === anim ? '#FF6B9D' : 'var(--border)'}`,
-            background: filterAnim === anim ? '#FF6B9D' : 'white',
-            color: filterAnim === anim ? 'white' : 'var(--text)',
-            fontWeight: 700, fontSize: '0.75rem',
-          }}>👤 {anim}</button>
-        ))}
+      </div>
+
+      {/* Filtres âge + animateurs */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8, marginBottom: 16 }}>
         {['all', '3-5 ans', '6-11 ans'].map(a => (
           <button key={a} onClick={() => setFilterAge(a)} style={{
             flexShrink: 0, padding: '6px 12px', borderRadius: 20,
@@ -98,12 +99,29 @@ export default function BanqueAnimations() {
             fontWeight: 700, fontSize: '0.75rem',
           }}>{a === 'all' ? 'Tous âges' : a}</button>
         ))}
+        <div style={{ width: 1, background: 'var(--border)', flexShrink: 0 }} />
+        <button onClick={() => setFilterAnim('all')} style={{
+          flexShrink: 0, padding: '6px 12px', borderRadius: 20,
+          border: `2px solid ${filterAnim === 'all' ? '#FF6B9D' : 'var(--border)'}`,
+          background: filterAnim === 'all' ? '#FF6B9D' : 'white',
+          color: filterAnim === 'all' ? 'white' : 'var(--text)',
+          fontWeight: 700, fontSize: '0.75rem',
+        }}>👤 Tous</button>
+        {animateurs.map(anim => (
+          <button key={anim} onClick={() => setFilterAnim(filterAnim === anim ? 'all' : anim)} style={{
+            flexShrink: 0, padding: '6px 12px', borderRadius: 20,
+            border: `2px solid ${filterAnim === anim ? '#FF6B9D' : 'var(--border)'}`,
+            background: filterAnim === anim ? '#FF6B9D' : 'white',
+            color: filterAnim === anim ? 'white' : 'var(--text)',
+            fontWeight: 700, fontSize: '0.75rem',
+          }}>👤 {anim}</button>
+        ))}
       </div>
 
       {loading && <div className="spinner" />}
       {!loading && filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text2)' }}>
-          <div style={{ fontSize: '3rem', marginBottom: 12 }}>🏦</div>
+          <div style={{ fontSize: '3rem', marginBottom: 12 }}>🗂</div>
           <p style={{ fontWeight: 700 }}>Aucune activité trouvée</p>
         </div>
       )}
@@ -122,7 +140,7 @@ export default function BanqueAnimations() {
                     <div style={{ display: 'flex', gap: 5, flexWrap: 'wrap' }}>
                       <span className="tag" style={{ background: tc.bg, color: tc.color, fontSize: '0.68rem' }}>{a.type}</span>
                       <span className="tag" style={{ background: '#f0edf8', color: '#764ba2', fontSize: '0.68rem' }}>{a.age}</span>
-                      <span className="tag" style={{ background: 'var(--bg)', color: 'var(--text2)', fontSize: '0.68rem' }}>👤 {a.animateur}</span>
+                      <span className="tag" style={{ background: '#FBEAF0', color: '#CC4477', fontSize: '0.68rem' }}>👤 {a.animateur}</span>
                       {a.session_active && <span className="tag" style={{ background: '#E0FBF1', color: '#0A7A5A', fontSize: '0.68rem' }}>✓ Session</span>}
                     </div>
                   </div>
