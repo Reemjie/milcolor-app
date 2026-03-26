@@ -91,9 +91,7 @@ export default function Chat() {
               👤 {auteur} · changer
             </button>
           </div>
-          <button onClick={() => navigate('/bilans')} style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 10, padding: '7px 12px', fontWeight: 700, fontSize: '0.78rem', color: 'var(--text2)' }}>
-            📋 Bilans
-          </button>
+
         </div>
 
         {/* Category filter */}

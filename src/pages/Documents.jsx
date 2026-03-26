@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase'
 const SECTIONS = [
   { id: 'projet_peda', icon: '📚', label: 'Projet pédagogique', color: 'var(--green)', bg: '#E0FBF1', pdfOnly: true },
   { id: 'attentes', icon: '🎯', label: 'Attentes du directeur', color: 'var(--orange)', bg: '#FFF3EC', pdfOnly: true },
+  { id: 'journee_type', icon: '🗓', label: 'Journée type', color: '#FF6B9D', bg: '#FBEAF0', pdfOnly: false, withPhoto: true },
   { id: 'infos_pratiques', icon: 'ℹ️', label: 'Infos pratiques', color: 'var(--blue)', bg: '#E8F4FF', pdfOnly: false },
 ]
 
@@ -187,8 +188,23 @@ export default function Documents() {
             </div>
           )}
 
-          {/* Section texte (Infos pratiques) */}
-          {activeSection !== 'pdfs' && section && !section.pdfOnly && (
+          {/* Section avec photo (Journée type) */}
+          {activeSection !== 'pdfs' && section && !section.pdfOnly && section.withPhoto && (
+            <div style={{ marginBottom: 0 }}>
+              <iframe src={`/#/journee-type`} style={{ display: 'none' }} />
+              <div className="card" style={{ overflow: 'hidden' }}>
+                <div style={{ background: section.bg, padding: '16px 20px', borderRadius: '16px 16px 0 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'Fredoka', fontSize: '1.1rem', fontWeight: 600, color: section.color }}>{section.icon} {section.label}</span>
+                  <a href="#/journee-type" style={{ background: 'white', border: `1.5px solid ${section.color}`, borderRadius: 8, padding: '6px 14px', fontWeight: 700, fontSize: '0.8rem', color: section.color, textDecoration: 'none' }}>✏️ Modifier</a>
+                </div>
+                <div style={{ padding: '20px', textAlign: 'center', color: 'var(--text2)' }}>
+                  <p style={{ fontSize: '0.85rem' }}>Clique sur "Modifier" pour éditer la journée type</p>
+                </div>
+              </div>
+            </div>
+          )}
+          {/* Section texte sans photo */}
+          {activeSection !== 'pdfs' && section && !section.pdfOnly && !section.withPhoto && (
             <div className="card" style={{ overflow: 'visible' }}>
               <div style={{ background: section.bg, padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderRadius: '16px 16px 0 0' }}>
                 <span style={{ fontFamily: 'Fredoka', fontSize: '1.1rem', fontWeight: 600, color: section.color }}>{section.icon} {section.label}</span>
