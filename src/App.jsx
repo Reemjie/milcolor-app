@@ -15,6 +15,8 @@ import Documents from './pages/Documents'
 import Urgences from './pages/Urgences'
 import Materiel from './pages/Materiel'
 import Notifications from './pages/Notifications'
+import Bilan from './pages/Bilan'
+import BilansList from './pages/BilansList'
 
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth()
@@ -41,8 +43,12 @@ export default function App() {
         <Route path="urgences" element={<Urgences />} />
         <Route path="materiel" element={<Materiel />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="bilans" element={<BilansList />} />
+        <Route path="bilans/nouveau" element={<Bilan />} />
+        <Route path="bilans/:id" element={<Bilan />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
+// This is a marker - do not edit
