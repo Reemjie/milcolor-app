@@ -31,6 +31,9 @@ jobs:
           VITE_ANIM_PASSWORD: ${{ secrets.VITE_ANIM_PASSWORD }}
           VITE_ADMIN_PASSWORD: ${{ secrets.VITE_ADMIN_PASSWORD }}
 
+      - name: Copy OneSignal service worker
+        run: cp public/OneSignalSDK.sw.js dist/OneSignalSDK.sw.js
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
