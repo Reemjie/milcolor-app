@@ -31,12 +31,11 @@ export default function Accueil() {
 
   const quickActions = [
     { icon: '📅', label: 'Planning\nsemaine',   to: '/plannings',    color: '#06D6A0', bg: '#E0FBF1' },
-    { icon: '🎨', label: 'Activités
-en cours',   to: '/session',      color: '#9B5DE5', bg: '#f0edf8' },
-    { icon: '⚡', label: 'Anim.\nrapides',      to: '/rapides',      color: '#FF9F43', bg: '#FFF3E0' },
-    { icon: '🗂', label: 'Banque\nanim.',       to: '/banque',       color: '#118AB2', bg: '#E8F4FF' },
+    { icon: '🎨', label: 'Activités\nen cours', to: '/session',      color: '#9B5DE5', bg: '#f0edf8' },
+    { icon: '🎯', label: 'Objectifs\nsession',  to: '/objectifs',    color: '#CC6600', bg: '#FFF3E0' },
+    { icon: '🗂', label: 'Catalogue',            to: '/banque',       color: '#118AB2', bg: '#E8F4FF' },
     { icon: '🗓', label: 'Journée\ntype',        to: '/journee-type', color: '#FF6B9D', bg: '#FBEAF0' },
-    { icon: '📁', label: 'Documents',            to: '/documents',    color: '#636E72', bg: '#f5f5f5' },
+    { icon: '⚡', label: 'Anim.\nrapides',      to: '/rapides',      color: '#FF9F43', bg: '#FFF3E0' },
   ]
 
   return (

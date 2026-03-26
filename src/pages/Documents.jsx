@@ -99,7 +99,7 @@ export default function Documents() {
   return (
     <div className="page-enter" style={{ padding: '20px 16px' }}>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: '1.6rem' }}>📁 Documents</h1>
+        <h1 style={{ fontSize: '1.6rem' }}>📁 Documents divers</h1>
         <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>Ressources & informations</p>
       </div>
 
