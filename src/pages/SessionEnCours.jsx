@@ -50,7 +50,7 @@ export default function SessionEnCours() {
           <h1 style={{ fontSize: '1.6rem' }}>🎨 Activités en cours</h1>
           <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>{filtered.length} activité{filtered.length > 1 ? 's' : ''} cette session</p>
         </div>
-        <button onClick={() => navigate('/materiel-session')} style={{ background: '#E0FBF1', border: '1.5px solid #06D6A0', borderRadius: 10, padding: '8px 14px', fontWeight: 700, fontSize: '0.82rem', color: '#0A7A5A' }}>📦 Matériel</button>
+        {isAdmin && <button onClick={() => navigate('/materiel-session')} style={{ background: '#E0FBF1', border: '1.5px solid #06D6A0', borderRadius: 10, padding: '8px 14px', fontWeight: 700, fontSize: '0.82rem', color: '#0A7A5A' }}>📦 Matériel</button>}
         <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
       </div>
 
