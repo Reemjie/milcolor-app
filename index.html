@@ -12,7 +12,17 @@
     <link rel="manifest" href="/milcolor-app/manifest.json" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Milcolor App</title>
-    <script type="module" crossorigin src="/milcolor-app/assets/index-Bkt_o2rl.js"></script>
+  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+  <script>
+    window.OneSignalDeferred = window.OneSignalDeferred || [];
+    OneSignalDeferred.push(async function(OneSignal) {
+      await OneSignal.init({
+        appId: "6f0e5885-7f27-4209-9ae3-c0d33504745f",
+        serviceWorkerPath: "/milcolor-app/OneSignalSDK.sw.js",
+      });
+    });
+  </script>
+    <script type="module" crossorigin src="/milcolor-app/assets/index-D7U7G6ho.js"></script>
     <link rel="stylesheet" crossorigin href="/milcolor-app/assets/index-DT-cvDhS.css">
   </head>
   <body>
