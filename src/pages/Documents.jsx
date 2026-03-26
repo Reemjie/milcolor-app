@@ -139,12 +139,12 @@ export default function Documents() {
           position: 'fixed', inset: 0,
           background: 'rgba(0,0,0,0.5)',
           zIndex: 200,
-          display: 'flex', alignItems: 'flex-end',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px',
         }} onClick={e => e.target === e.currentTarget && setEditSection(null)}>
           <div style={{
-            background: 'white', borderRadius: '24px 24px 0 0',
+            background: 'white', borderRadius: '24px',
             padding: '24px 20px', width: '100%',
-            height: '90dvh', display: 'flex', flexDirection: 'column',
+            maxHeight: '80dvh', display: 'flex', flexDirection: 'column',
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: '1.2rem' }}>

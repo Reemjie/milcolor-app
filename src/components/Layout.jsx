@@ -33,7 +33,7 @@ export default function Layout() {
     '/journee-type': '🗓 Journée type',
     '/objectifs': '🎯 Objectifs',
     '/session': '🎨 Session en cours',
-    '/banque': '🏦 Banque d\'animations',
+    '/banque': '🗂 Catalogue d\'animations',
     '/rapides': '⚡ Animations rapides',
     '/chat': '💬 Chat & remarques',
     '/documents': '📁 Documents',
