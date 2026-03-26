@@ -37,7 +37,7 @@ export default function ActiviteForm() {
   const { isAdmin } = useAuth()
   const isEdit = !!id
 
-  const [form, setForm] = useState({ nom: '', animateur: '', type: 'Activité manuelle', age: '3-5 ans', materiel: '', regles: '', commentaires: '', photo_url: '', session_active: false })
+  const [form, setForm] = useState({ nom: '', animateur: '', type: 'Activité manuelle', age: '3-5 ans', materiel: '', regles: '', commentaires: '', photo_url: '', session_active: true })
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [photoPreview, setPhotoPreview] = useState(null)

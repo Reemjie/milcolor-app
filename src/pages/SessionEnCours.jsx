@@ -17,6 +17,7 @@ export default function SessionEnCours() {
   const [activites, setActivites] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterAge, setFilterAge] = useState('all')
+  const [actionId, setActionId] = useState(null)
 
   useEffect(() => { fetchActivites() }, [])
 
@@ -27,14 +28,27 @@ export default function SessionEnCours() {
     setLoading(false)
   }
 
+  async function archiver(id) {
+    await supabase.from('activites').update({ session_active: false }).eq('id', id)
+    setActionId(null)
+    fetchActivites()
+  }
+
+  async function supprimer(id) {
+    if (!confirm('Supprimer définitivement cette activité ?')) return
+    await supabase.from('activites').delete().eq('id', id)
+    setActionId(null)
+    fetchActivites()
+  }
+
   const filtered = filterAge === 'all' ? activites : activites.filter(a => a.age === filterAge)
 
   return (
     <div className="page-enter" style={{ padding: '20px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem' }}>🎨 Session en cours</h1>
-          <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>Activités de cette session</p>
+          <h1 style={{ fontSize: '1.6rem' }}>🎨 Activités en cours</h1>
+          <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>{filtered.length} activité{filtered.length > 1 ? 's' : ''} cette session</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
       </div>
@@ -42,7 +56,7 @@ export default function SessionEnCours() {
       {/* Sub-nav */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16, overflowX: 'auto', paddingBottom: 4 }}>
         {[
-          { to: '/session', label: '📋 Session', active: true },
+          { to: '/session', label: '📋 En cours', active: true },
           { to: '/banque', label: '🗂 Catalogue' },
           { to: '/rapides', label: '⚡ Rapides' },
         ].map(item => (
@@ -66,39 +80,64 @@ export default function SessionEnCours() {
         ))}
       </div>
 
+      {/* Bandeau info fin de session */}
+      {isAdmin && activites.length > 0 && (
+        <div style={{ background: '#FFF3E0', border: '2px solid #FF9F43', borderRadius: 12, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: '1.2rem' }}>💡</span>
+          <p style={{ fontSize: '0.8rem', color: '#CC6600', lineHeight: 1.4 }}>
+            <strong>Fin de session :</strong> archive les activités dans le Catalogue pour les retrouver plus tard, ou supprime-les.
+          </p>
+        </div>
+      )}
+
       {loading && <div className="spinner" />}
 
       {!loading && filtered.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text2)' }}>
           <div style={{ fontSize: '3rem', marginBottom: 12 }}>🎨</div>
-          <p style={{ fontWeight: 700 }}>Aucune activité pour cette session</p>
-          <p style={{ fontSize: '0.85rem', marginTop: 6 }}>Ajoute des activités depuis la banque ou crées-en une nouvelle</p>
-          <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 16 }}>
-            <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Nouvelle activité</button>
-            <button className="btn btn-ghost" onClick={() => navigate('/banque')}>Voir la banque</button>
-          </div>
+          <p style={{ fontWeight: 700 }}>Aucune activité en cours</p>
+          <p style={{ fontSize: '0.85rem', marginTop: 6 }}>Les animateurs peuvent en ajouter avec le bouton "+"</p>
+          <button className="btn btn-primary" style={{ marginTop: 16 }} onClick={() => navigate('/banque/nouvelle')}>+ Nouvelle activité</button>
         </div>
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {filtered.map(a => {
           const tc = TYPE_COLORS[a.type] || { bg: '#f5f5f5', color: '#666' }
+          const isOpen = actionId === a.id
           return (
-            <div key={a.id} className="card" onClick={() => navigate(`/banque/${a.id}`)} style={{ cursor: 'pointer' }}>
-              {a.photo_url && <img src={a.photo_url} alt={a.nom} style={{ width: '100%', height: 130, objectFit: 'cover', display: 'block' }} />}
-              <div style={{ padding: '14px 16px' }}>
+            <div key={a.id} className="card" style={{ overflow: 'hidden' }}>
+              {/* Fiche */}
+              <div style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => navigate(`/banque/${a.id}`)}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div style={{ width: 40, height: 40, borderRadius: 10, background: tc.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', flexShrink: 0 }}>
-                    {TYPE_ICONS[a.type] || '🎯'}
-                  </div>
-                  <div style={{ flex: 1 }}>
+                  {a.photo_url && <img src={a.photo_url} alt={a.nom} style={{ width: 56, height: 56, borderRadius: 10, objectFit: 'cover', flexShrink: 0 }} />}
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, marginBottom: 4 }}>{a.nom}</div>
                     <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                      <span className="tag" style={{ background: tc.bg, color: tc.color }}>{a.type}</span>
+                      <span className="tag" style={{ background: tc.bg, color: tc.color }}>{TYPE_ICONS[a.type]} {a.type}</span>
                       <span className="tag" style={{ background: '#f0edf8', color: '#764ba2' }}>{a.age}</span>
-                      <span className="tag" style={{ background: 'var(--bg)', color: 'var(--text2)' }}>👤 {a.animateur}</span>
+                      <span className="tag" style={{ background: '#FBEAF0', color: '#CC4477' }}>👤 {a.animateur}</span>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              {/* Actions fin de session */}
+              <div style={{ borderTop: '1px solid var(--border)', padding: '10px 16px', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text2)', fontWeight: 600 }}>Fin de session :</span>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button
+                    onClick={() => archiver(a.id)}
+                    style={{ padding: '6px 14px', borderRadius: 8, background: '#E0FBF1', border: '1.5px solid #06D6A0', color: '#0A7A5A', fontWeight: 700, fontSize: '0.78rem' }}
+                  >
+                    🗂 Archiver
+                  </button>
+                  <button
+                    onClick={() => supprimer(a.id)}
+                    style={{ padding: '6px 12px', borderRadius: 8, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.78rem' }}
+                  >
+                    🗑 Supprimer
+                  </button>
                 </div>
               </div>
             </div>
