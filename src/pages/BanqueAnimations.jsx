@@ -41,7 +41,7 @@ export default function BanqueAnimations() {
     <div className="page-enter" style={{ padding: '20px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
-          <h1 style={{ fontSize: '1.6rem' }}>🏦 Banque d'animations</h1>
+          <h1 style={{ fontSize: '1.6rem' }}>🗂 Catalogue d'animations</h1>
           <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>{filtered.length} activité{filtered.length > 1 ? 's' : ''}</p>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
@@ -51,7 +51,7 @@ export default function BanqueAnimations() {
       <div style={{ display: 'flex', gap: 8, marginBottom: 12, overflowX: 'auto', paddingBottom: 4 }}>
         {[
           { to: '/session', label: '📋 Session' },
-          { to: '/banque', label: '🏦 Banque', active: true },
+          { to: '/banque', label: '🗂 Catalogue', active: true },
           { to: '/rapides', label: '⚡ Rapides' },
         ].map(item => (
           <button key={item.to} onClick={() => navigate(item.to)} style={{
