@@ -38,7 +38,7 @@ export default function AnimationsRapides() {
   }
 
   return (
-    <div className="page-enter" style={{ padding: '20px 16px' }}>
+    <div className="page-enter" style={{ padding: '20px 16px', paddingTop: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
         <div>
           <h1 style={{ fontSize: '1.6rem' }}>⚡ Animations rapides</h1>
@@ -49,7 +49,7 @@ export default function AnimationsRapides() {
 
       {/* Sub-nav */}
       <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
-        {[{ to: '/session', label: '📋 Session' }, { to: '/banque', label: '🏦 Banque' }, { to: '/rapides', label: '⚡ Rapides', active: true }].map(item => (
+        {[{ to: '/session', label: '📋 Session' }, { to: '/banque', label: '🗂 Catalogue' }, { to: '/rapides', label: '⚡ Rapides', active: true }].map(item => (
           <button key={item.to} onClick={() => navigate(item.to)} style={{ flexShrink: 0, padding: '7px 16px', borderRadius: 20, border: `2px solid ${item.active ? 'var(--orange)' : 'var(--border)'}`, background: item.active ? 'var(--orange)' : 'white', color: item.active ? 'white' : 'var(--text)', fontWeight: 700, fontSize: '0.82rem' }}>{item.label}</button>
         ))}
       </div>
@@ -85,8 +85,8 @@ export default function AnimationsRapides() {
 
       {/* Form modal */}
       {showForm && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={e => e.target === e.currentTarget && setShowForm(false)}>
-          <div style={{ background: 'white', borderRadius: '24px 24px 0 0', padding: '24px 20px', width: '100%', maxHeight: '90dvh', overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={e => e.target === e.currentTarget && setShowForm(false)}>
+          <div style={{ background: 'white', borderRadius: '24px', padding: '24px 20px', width: '100%', maxWidth: '480px', maxHeight: '80dvh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
               <h2 style={{ fontSize: '1.3rem' }}>⚡ Nouvelle animation rapide</h2>
               <button onClick={() => setShowForm(false)} style={{ background: 'var(--bg)', border: 'none', borderRadius: 8, padding: '6px 12px', fontWeight: 700 }}>✕</button>

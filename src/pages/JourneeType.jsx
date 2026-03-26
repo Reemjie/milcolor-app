@@ -34,7 +34,7 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
   if (loading) return <div className="spinner" style={{ marginTop: 80 }} />
 
   return (
-    <div className="page-enter" style={{ padding: '20px 16px' }}>
+    <div className="page-enter" style={{ padding: '20px 16px', paddingTop: '24px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <h1 style={{ fontSize: '1.6rem' }}>{icon} {title}</h1>
         {isAdmin && <button className="btn btn-primary" onClick={() => { setEditContent(doc?.contenu || ''); setEditMode(true) }}>✏️ Modifier</button>}
@@ -58,8 +58,8 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
       </div>
 
       {editMode && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'flex-end' }} onClick={e => e.target === e.currentTarget && setEditMode(false)}>
-          <div style={{ background: 'white', borderRadius: '24px 24px 0 0', padding: '24px 20px', width: '100%', height: '90dvh', display: 'flex', flexDirection: 'column' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }} onClick={e => e.target === e.currentTarget && setEditMode(false)}>
+          <div style={{ background: 'white', borderRadius: '24px', padding: '24px 20px', width: '100%', maxWidth: '480px', maxHeight: '80dvh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
               <h2 style={{ fontSize: '1.2rem' }}>{icon} {title}</h2>
               <button onClick={() => setEditMode(false)} style={{ background: 'var(--bg)', border: 'none', borderRadius: 8, padding: '6px 12px', fontWeight: 700 }}>✕</button>
