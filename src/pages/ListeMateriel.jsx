@@ -19,6 +19,7 @@ export default function ListeMateriel() {
   })
   const [loading, setLoading] = useState(true)
   const [filterDone, setFilterDone] = useState('all')
+  const [selected, setSelected] = useState({})
 
   useEffect(() => { fetchMateriel() }, [])
 
@@ -46,6 +47,27 @@ export default function ListeMateriel() {
   function resetAll() {
     setChecked({})
     sessionStorage.removeItem('materiel_checked')
+  }
+
+  function toggleSelect(id) {
+    setSelected(s => ({ ...s, [id]: !s[id] }))
+  }
+
+  function selectAll() {
+    const allSelected = filtered.every(i => selected[i.id])
+    if (allSelected) {
+      setSelected({})
+    } else {
+      const next = {}
+      filtered.forEach(i => { next[i.id] = true })
+      setSelected(next)
+    }
+  }
+
+  function deleteSelected() {
+    if (!confirm('Supprimer les éléments sélectionnés ?')) return
+    setItems(prev => prev.filter(i => !selected[i.id]))
+    setSelected({})
   }
 
   const filtered = filterDone === 'all' ? items
@@ -100,6 +122,28 @@ export default function ListeMateriel() {
         ))}
       </div>
 
+      {/* Actions sélection */}
+      {items.length > 0 && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+          <button onClick={selectAll} style={{
+            flex: 1, padding: '9px', borderRadius: 10,
+            border: '2px solid var(--border)', background: 'white',
+            fontWeight: 700, fontSize: '0.8rem', color: 'var(--text2)',
+          }}>
+            {filtered.every(i => selected[i.id]) ? '☐ Tout désélectionner' : '☑ Tout sélectionner'}
+          </button>
+          {Object.values(selected).some(Boolean) && (
+            <button onClick={deleteSelected} style={{
+              padding: '9px 14px', borderRadius: 10,
+              background: '#fff0f0', border: '1.5px solid #f5c6cb',
+              fontWeight: 700, fontSize: '0.8rem', color: '#e74c3c',
+            }}>
+              🗑 Supprimer ({Object.values(selected).filter(Boolean).length})
+            </button>
+          )}
+        </div>
+      )}
+
       {loading && <div className="spinner" />}
 
       {!loading && items.length === 0 && (
@@ -115,22 +159,31 @@ export default function ListeMateriel() {
         {filtered.map(item => (
           <div
             key={item.id}
-            onClick={() => toggle(item.id)}
             style={{
               display: 'flex', alignItems: 'center', gap: 14,
-              background: 'white', borderRadius: 12, padding: '14px 16px',
-              boxShadow: 'var(--shadow)', cursor: 'pointer',
+              background: selected[item.id] ? '#FFF3EC' : 'white',
+              borderRadius: 12, padding: '14px 16px',
+              boxShadow: 'var(--shadow)',
               opacity: checked[item.id] ? 0.5 : 1,
-              transition: 'opacity 0.2s',
-              border: `1.5px solid ${checked[item.id] ? 'var(--green)' : 'var(--border)'}`,
+              transition: 'all 0.2s',
+              border: `1.5px solid ${selected[item.id] ? 'var(--orange)' : checked[item.id] ? 'var(--green)' : 'var(--border)'}`,
             }}
           >
-            <div style={{
+            <div onClick={() => toggleSelect(item.id)} style={{
+              width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+              border: `2px solid ${selected[item.id] ? 'var(--orange)' : 'var(--border)'}`,
+              background: selected[item.id] ? 'var(--orange)' : 'white',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'white', fontSize: '0.9rem', transition: 'all 0.2s', cursor: 'pointer',
+            }}>
+              {selected[item.id] ? '✓' : ''}
+            </div>
+            <div onClick={() => toggle(item.id)} style={{
               width: 26, height: 26, borderRadius: 8, flexShrink: 0,
               border: `2px solid ${checked[item.id] ? 'var(--green)' : 'var(--border)'}`,
               background: checked[item.id] ? 'var(--green)' : 'white',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontSize: '0.9rem', transition: 'all 0.2s',
+              color: 'white', fontSize: '0.9rem', transition: 'all 0.2s', cursor: 'pointer',
             }}>
               {checked[item.id] ? '✓' : ''}
             </div>
@@ -142,6 +195,10 @@ export default function ListeMateriel() {
                 🎨 {item.activite} · 👤 {item.animateur}
               </div>
             </div>
+            <button onClick={e => { e.stopPropagation(); setItems(prev => prev.filter(i => i.id !== item.id)) }} style={{
+              background: 'none', border: 'none', color: 'var(--text2)',
+              opacity: 0.4, fontSize: '1rem', flexShrink: 0, cursor: 'pointer',
+            }}>🗑</button>
           </div>
         ))}
       </div>
