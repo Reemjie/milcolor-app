@@ -17,6 +17,7 @@ import Materiel from './pages/Materiel'
 import Notifications from './pages/Notifications'
 import GrandsJeux from './pages/GrandsJeux'
 import InfosEnfants from './pages/InfosEnfants'
+import InfosJour from './pages/InfosJour'
 import Bilan from './pages/Bilan'
 import ListeMateriel from './pages/ListeMateriel'
 import BilansList from './pages/BilansList'
@@ -48,6 +49,7 @@ export default function App() {
         <Route path="notifications" element={<Notifications />} />
         <Route path="grands-jeux" element={<GrandsJeux />} />
         <Route path="infos-enfants" element={<InfosEnfants />} />
+        <Route path="infos-jour" element={<InfosJour />} />
         <Route path="bilans" element={<BilansList />} />
         <Route path="bilans/nouveau" element={<Bilan />} />
         <Route path="bilans/:id" element={<Bilan />} />
