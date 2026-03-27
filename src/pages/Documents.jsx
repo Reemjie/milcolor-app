@@ -7,6 +7,7 @@ const SECTIONS = [
   { id: 'attentes', icon: '🎯', label: 'Attentes du directeur', color: 'var(--orange)', bg: '#FFF3EC', pdfOnly: true },
   { id: 'journee_type', icon: '🗓', label: 'Journée type', color: '#FF6B9D', bg: '#FBEAF0', pdfOnly: false, withPhoto: true },
   { id: 'infos_pratiques', icon: 'ℹ️', label: 'Infos pratiques', color: 'var(--blue)', bg: '#E8F4FF', pdfOnly: false },
+  { id: 'comptes_rendus', icon: '📝', label: 'Comptes rendus de réunion', color: '#9B5DE5', bg: '#f0edf8', pdfOnly: true },
 ]
 
 export default function Documents() {
