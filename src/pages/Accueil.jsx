@@ -222,6 +222,21 @@ export default function Accueil() {
         </div>
       )}
 
+      {/* Évaluations BAFA — directeur seulement */}
+      {isAdmin && (
+        <button onClick={() => navigate('/evaluations-bafa')} style={{
+          background: '#f0edf8', border: '2px solid #9B5DE5',
+          borderRadius: 14, padding: '14px 16px', width: '100%',
+          display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10,
+        }}>
+          <span style={{ fontSize: '1.5rem' }}>⭐</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontWeight: 700, color: '#9B5DE5' }}>Évaluations BAFA</div>
+            <div style={{ fontSize: '0.78rem', color: '#9B5DE5' }}>Auto-évaluations des stagiaires</div>
+          </div>
+        </button>
+      )}
+
       {/* Boutons urgences / objectifs */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <button onClick={() => navigate('/urgences')} style={{
