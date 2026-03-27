@@ -60,7 +60,7 @@ export default function Accueil() {
     { icon: '🎯', label: 'Objectifs\nsession',  to: '/objectifs',    color: '#CC6600', bg: '#FFF3E0' },
     { icon: '🎪', label: 'Grands\njeux',            to: '/grands-jeux',  color: '#9B5DE5', bg: '#f0edf8' },
     { icon: '📋', label: 'Bilans\njournée',      to: '/bilans',       color: '#118AB2', bg: '#E8F4FF' },
-    { icon: '⚡', label: 'Anim.\nrapides',      to: '/rapides',      color: '#FF9F43', bg: '#FFF3E0' },
+    { icon: '👶', label: 'Infos\nenfants',      to: '/infos-enfants', color: '#FF6B9D', bg: '#FBEAF0' },
   ]
 
   return (
