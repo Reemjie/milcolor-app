@@ -27,13 +27,15 @@ function resizeImage(file) {
   })
 }
 
-function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
+function TextPage({ sectionId, icon, title, color, bg, placeholder, withPdf }) {
   const { isAdmin } = useAuth()
   const [doc, setDoc] = useState(null)
   const [loading, setLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [editContent, setEditContent] = useState('')
   const [editPhoto, setEditPhoto] = useState(null)
+  const [pdfUrl, setPdfUrl] = useState(null)
+  const [uploadingPdf, setUploadingPdf] = useState(false)
   const [photoPreview, setPhotoPreview] = useState(null)
   const [saving, setSaving] = useState(false)
 
@@ -43,6 +45,7 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
     setLoading(true)
     const { data } = await supabase.from('documents').select('*').eq('section_id', sectionId).maybeSingle()
     setDoc(data)
+    if (data?.pdf_url) setPdfUrl(data.pdf_url)
     setLoading(false)
   }
 
@@ -52,6 +55,24 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
     const dataUrl = await resizeImage(file)
     setPhotoPreview(dataUrl)
     setEditPhoto(dataUrl)
+  }
+
+  async function uploadPdf(e) {
+    const file = e.target.files?.[0]
+    if (!file || file.type !== 'application/pdf') return
+    setUploadingPdf(true)
+    const filename = `journee_type_${Date.now()}.pdf`
+    await supabase.storage.from('documents').upload(`sections/${filename}`, file, { upsert: true })
+    const { data } = supabase.storage.from('documents').getPublicUrl(`sections/${filename}`)
+    setPdfUrl(data.publicUrl)
+    const existing = doc
+    if (existing) {
+      await supabase.from('documents').update({ pdf_url: data.publicUrl, updated_at: new Date().toISOString() }).eq('id', existing.id)
+    } else {
+      await supabase.from('documents').insert([{ section_id: sectionId, pdf_url: data.publicUrl }])
+    }
+    setUploadingPdf(false)
+    fetchDoc()
   }
 
   async function save() {
@@ -85,7 +106,17 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
     <div className="page-enter" style={{ padding: '20px 16px' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <h1 style={{ fontSize: '1.6rem' }}>{icon} {title}</h1>
-        {isAdmin && <button className="btn btn-primary" onClick={startEdit}>✏️ Modifier</button>}
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            {withPdf && (
+              <label style={{ background: bg, border: `1.5px solid ${color}`, borderRadius: 10, padding: '7px 12px', fontWeight: 700, fontSize: '0.8rem', color, cursor: 'pointer' }}>
+                {uploadingPdf ? '⏳…' : '📄 PDF'}
+                <input type="file" accept="application/pdf" onChange={uploadPdf} style={{ display: 'none' }} />
+              </label>
+            )}
+            <button className="btn btn-primary" onClick={startEdit}>✏️ Modifier</button>
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ overflow: 'hidden' }}>
@@ -95,6 +126,13 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
         <div style={{ padding: '20px' }}>
           {doc?.photo_url && (
             <img src={doc.photo_url} alt={title} style={{ width: '100%', borderRadius: 12, marginBottom: 16, display: 'block', objectFit: 'contain', background: '#f8f8f8' }} />
+          )}
+          {pdfUrl && (
+            <div style={{ marginBottom: 16, padding: '12px 14px', background: 'var(--bg)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+              <span style={{ fontSize: '1.5rem' }}>📄</span>
+              <span style={{ flex: 1, fontWeight: 700, fontSize: '0.85rem' }}>Journée type (PDF)</span>
+              <a href={pdfUrl} target="_blank" rel="noreferrer" style={{ padding: '6px 12px', borderRadius: 8, background: color, color: 'white', fontWeight: 700, fontSize: '0.78rem', textDecoration: 'none' }}>👁 Ouvrir</a>
+            </div>
           )}
           {doc?.contenu ? (
             <div style={{ fontSize: '0.92rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{doc.contenu}</div>
@@ -152,7 +190,7 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder }) {
 }
 
 export function JourneeType() {
-  return <TextPage sectionId="journee_type" icon="🗓" title="Journée type" color="#0F6E56" bg="#E0FBF1" placeholder="Décris le déroulement type d'une journée : horaires, routines, temps forts..." />
+  return <TextPage sectionId="journee_type" icon="🗓" title="Journée type" color="#0F6E56" bg="#E0FBF1" placeholder="Décris le déroulement type d'une journée : horaires, routines, temps forts..." withPdf={true} />
 }
 
 export function Objectifs() {
