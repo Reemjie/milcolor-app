@@ -245,6 +245,65 @@ export default function InfosJour() {
           </div>
         </div>
       )}
+
+      {/* Modal impression */}
+      {showImpForm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}
+          onClick={e => e.target === e.currentTarget && setShowImpForm(false)}>
+          <div style={{ background: 'white', borderRadius: 24, padding: '24px 20px', width: '100%', maxWidth: 480, maxHeight: '85dvh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <h2 style={{ fontSize: '1.2rem', color: '#9B5DE5' }}>🖨️ À imprimer</h2>
+              <button onClick={() => setShowImpForm(false)} style={{ background: 'var(--bg)', border: 'none', borderRadius: 8, padding: '6px 12px', fontWeight: 700 }}>✕</button>
+            </div>
+
+            <label style={lStyle}>Ton prénom</label>
+            <input value={impForm.auteur} onChange={e => setImpForm(f => ({ ...f, auteur: e.target.value }))} placeholder="ex: Emma" style={{ ...iStyle, marginBottom: 14 }} />
+
+            <label style={lStyle}>Nom du document *</label>
+            <input value={impForm.nom} onChange={e => setImpForm(f => ({ ...f, nom: e.target.value }))} placeholder="ex: Règles du jeu des familles" style={{ ...iStyle, marginBottom: 14 }} />
+
+            <label style={lStyle}>Taille</label>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 14 }}>
+              {['A3', 'A4', 'A5'].map(t => (
+                <button key={t} onClick={() => setImpForm(f => ({ ...f, taille: t }))} style={{
+                  flex: 1, padding: '10px', borderRadius: 10,
+                  border: `2px solid ${impForm.taille === t ? '#9B5DE5' : 'var(--border)'}`,
+                  background: impForm.taille === t ? '#f0edf8' : 'white',
+                  fontWeight: 700, fontSize: '0.9rem',
+                  color: impForm.taille === t ? '#9B5DE5' : 'var(--text)',
+                }}>{t}</button>
+              ))}
+            </div>
+
+            <label style={lStyle}>Quantité</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <button onClick={() => setImpForm(f => ({ ...f, quantite: Math.max(1, f.quantite - 1) }))} style={{ width: 44, height: 44, borderRadius: 12, background: 'var(--bg)', border: '2px solid var(--border)', fontSize: '1.3rem', fontWeight: 700 }}>−</button>
+              <span style={{ flex: 1, textAlign: 'center', fontSize: '1.8rem', fontWeight: 700, fontFamily: 'Fredoka' }}>{impForm.quantite}</span>
+              <button onClick={() => setImpForm(f => ({ ...f, quantite: f.quantite + 1 }))} style={{ width: 44, height: 44, borderRadius: 12, background: '#9B5DE5', border: 'none', color: 'white', fontSize: '1.3rem', fontWeight: 700 }}>+</button>
+            </div>
+
+            <label style={lStyle}>Fichier (PDF ou image) *</label>
+            {impForm.file ? (
+              <div style={{ marginBottom: 14, padding: '12px', background: '#f0edf8', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ fontSize: '1.3rem' }}>📄</span>
+                <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{impForm.file.name}</span>
+                <button onClick={() => setImpForm(f => ({ ...f, file: null }))} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 700 }}>✕</button>
+              </div>
+            ) : (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', border: '2px dashed var(--border)', borderRadius: 12, cursor: 'pointer', color: 'var(--text2)', background: 'var(--bg)', marginBottom: 14 }}>
+                <span style={{ fontSize: '1.5rem' }}>📎</span>
+                <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Choisir un fichier</span>
+                <input type="file" accept="application/pdf,image/*" onChange={e => setImpForm(f => ({ ...f, file: e.target.files?.[0] || null }))} style={{ display: 'none' }} />
+              </label>
+            )}
+
+            <button className="btn btn-primary" style={{ width: '100%', padding: '14px', opacity: (!impForm.nom || !impForm.file || uploading) ? 0.6 : 1 }}
+              onClick={uploadImpression} disabled={!impForm.nom || !impForm.file || uploading}>
+              {uploading ? '⏳ Upload…' : '📤 Ajouter à la liste'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
