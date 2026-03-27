@@ -15,6 +15,8 @@ import Documents from './pages/Documents'
 import Urgences from './pages/Urgences'
 import Materiel from './pages/Materiel'
 import Notifications from './pages/Notifications'
+import GrandsJeux from './pages/GrandsJeux'
+import InfosEnfants from './pages/InfosEnfants'
 import Bilan from './pages/Bilan'
 import ListeMateriel from './pages/ListeMateriel'
 import BilansList from './pages/BilansList'
@@ -44,6 +46,8 @@ export default function App() {
         <Route path="urgences" element={<Urgences />} />
         <Route path="materiel" element={<Materiel />} />
         <Route path="notifications" element={<Notifications />} />
+        <Route path="grands-jeux" element={<GrandsJeux />} />
+        <Route path="infos-enfants" element={<InfosEnfants />} />
         <Route path="bilans" element={<BilansList />} />
         <Route path="bilans/nouveau" element={<Bilan />} />
         <Route path="bilans/:id" element={<Bilan />} />
