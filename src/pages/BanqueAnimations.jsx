@@ -18,7 +18,6 @@ export default function BanqueAnimations() {
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState('all')
   const [filterAge, setFilterAge] = useState('all')
-  const [filterAnim, setFilterAnim] = useState('all')
   const [search, setSearch] = useState('')
 
   useEffect(() => { fetchActivites() }, [])
@@ -35,10 +34,9 @@ export default function BanqueAnimations() {
   const filtered = activites.filter(a => {
     const typeOk = filterType === 'all' || a.type === filterType
     const ageOk = filterAge === 'all' || a.age === filterAge
-    const animOk = filterAnim === 'all' || a.animateur === filterAnim
-    const q = search.toLowerCase()
+const q = search.toLowerCase()
     const searchOk = !q || a.nom?.toLowerCase().includes(q) || a.animateur?.toLowerCase().includes(q)
-    return typeOk && ageOk && animOk && searchOk
+    return typeOk && ageOk && searchOk
   })
 
   return (

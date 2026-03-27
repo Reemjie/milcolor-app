@@ -17,6 +17,9 @@ export default function SessionEnCours() {
   const [activites, setActivites] = useState([])
   const [loading, setLoading] = useState(true)
   const [filterAge, setFilterAge] = useState('all')
+  const [filterType, setFilterType] = useState('all')
+  const [filterAnim, setFilterAnim] = useState('all')
+  const [search, setSearch] = useState('')
   const [actionId, setActionId] = useState(null)
 
   useEffect(() => { fetchActivites() }, [])
@@ -41,7 +44,15 @@ export default function SessionEnCours() {
     fetchActivites()
   }
 
-  const filtered = filterAge === 'all' ? activites : activites.filter(a => a.age === filterAge)
+  const animateurs = [...new Set(activites.map(a => a.animateur).filter(Boolean))].sort()
+  const filtered = activites.filter(a => {
+    const ageOk = filterAge === 'all' || a.age === filterAge
+    const typeOk = filterType === 'all' || a.type === filterType
+    const animOk = filterAnim === 'all' || a.animateur === filterAnim
+    const q = search.toLowerCase()
+    const searchOk = !q || a.nom?.toLowerCase().includes(q) || a.animateur?.toLowerCase().includes(q)
+    return ageOk && typeOk && animOk && searchOk
+  })
 
   return (
     <div className="page-enter" style={{ padding: '20px 16px' }}>
@@ -52,6 +63,13 @@ export default function SessionEnCours() {
         </div>
         {isAdmin && <button onClick={() => navigate('/materiel-session')} style={{ background: '#E0FBF1', border: '1.5px solid #06D6A0', borderRadius: 10, padding: '8px 14px', fontWeight: 700, fontSize: '0.82rem', color: '#0A7A5A' }}>📦 Matériel</button>}
         <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
+      </div>
+
+      {/* Recherche */}
+      <div style={{ position: 'relative', marginBottom: 10 }}>
+        <span style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }}>🔍</span>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher…"
+          style={{ width: '100%', padding: '10px 14px 10px 40px', borderRadius: 12, border: '2px solid var(--border)', fontSize: '0.9rem', background: 'white' }} />
       </div>
 
       {/* Sub-nav */}
@@ -78,6 +96,39 @@ export default function SessionEnCours() {
             color: filterAge === a ? 'white' : 'var(--text)',
             fontWeight: 700, fontSize: '0.78rem',
           }}>{a === 'all' ? 'Tous âges' : a}</button>
+        ))}
+      </div>
+
+      {/* Filtres type */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 8 }}>
+        {['all', 'Jeux', 'Jeu de 11h', 'Activité manuelle', 'Temps calme'].map(t => (
+          <button key={t} onClick={() => setFilterType(t)} style={{
+            flexShrink: 0, padding: '6px 12px', borderRadius: 20,
+            border: `2px solid ${filterType === t ? 'var(--orange)' : 'var(--border)'}`,
+            background: filterType === t ? 'var(--orange)' : 'white',
+            color: filterType === t ? 'white' : 'var(--text)',
+            fontWeight: 700, fontSize: '0.75rem',
+          }}>{t === 'all' ? 'Tous types' : t}</button>
+        ))}
+      </div>
+
+      {/* Filtres animateurs */}
+      <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
+        <button onClick={() => setFilterAnim('all')} style={{
+          flexShrink: 0, padding: '6px 12px', borderRadius: 20,
+          border: `2px solid ${filterAnim === 'all' ? '#FF6B9D' : 'var(--border)'}`,
+          background: filterAnim === 'all' ? '#FF6B9D' : 'white',
+          color: filterAnim === 'all' ? 'white' : 'var(--text)',
+          fontWeight: 700, fontSize: '0.75rem',
+        }}>👤 Tous</button>
+        {animateurs.map(anim => (
+          <button key={anim} onClick={() => setFilterAnim(filterAnim === anim ? 'all' : anim)} style={{
+            flexShrink: 0, padding: '6px 12px', borderRadius: 20,
+            border: `2px solid ${filterAnim === anim ? '#FF6B9D' : 'var(--border)'}`,
+            background: filterAnim === anim ? '#FF6B9D' : 'white',
+            color: filterAnim === anim ? 'white' : 'var(--text)',
+            fontWeight: 700, fontSize: '0.75rem',
+          }}>👤 {anim}</button>
         ))}
       </div>
 
