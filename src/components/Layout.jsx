@@ -5,8 +5,8 @@ import { supabase } from '../lib/supabase'
 
 const NAV = [
   { to: '/accueil',   icon: '🏠', label: 'Accueil'   },
-  { to: '/documents', icon: '📁', label: 'Documents' },
   { to: '/session',   icon: '🎨', label: 'Activités' },
+  { to: '/documents', icon: '📁', label: 'Documents' },
   { to: '/chat',      icon: '💬', label: 'Chat'      },
 ]
 
