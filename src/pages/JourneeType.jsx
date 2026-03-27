@@ -254,7 +254,12 @@ export function Objectifs() {
             const isImage = !f.nom?.endsWith('.pdf')
             return (
               <div key={f.id} className="card" style={{ overflow: 'hidden' }}>
-                {isImage && <img src={f.url} alt={f.nom} style={{ width: '100%', maxHeight: 300, objectFit: 'contain', background: '#f8f8f8', display: 'block' }} />}
+                {isImage && (
+              <div style={{ position: 'relative' }} onClick={() => window.open(f.url, '_blank')}>
+                <img src={f.url} alt={f.nom} style={{ width: '100%', maxHeight: 300, objectFit: 'contain', background: '#f8f8f8', display: 'block', cursor: 'zoom-in' }} />
+                <button style={{ position: 'absolute', bottom: 8, right: 8, background: 'rgba(0,0,0,0.55)', color: 'white', border: 'none', borderRadius: 8, padding: '5px 10px', fontSize: '0.75rem', fontWeight: 700 }}>🔍 Agrandir</button>
+              </div>
+            )}
                 <div style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <span style={{ fontSize: '1.3rem' }}>{isImage ? '🖼️' : '📄'}</span>
                   <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.nom?.replace(/^\d+_/, '')}</span>
