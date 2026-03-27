@@ -248,17 +248,7 @@ export default function Accueil() {
           </div>
         </button>
 
-        <button onClick={() => navigate('/documents')} style={{
-          background: '#f5f5f5', border: '2px solid #ccc',
-          borderRadius: 14, padding: '14px 16px',
-          display: 'flex', alignItems: 'center', gap: 12,
-        }}>
-          <span style={{ fontSize: '1.5rem' }}>📁</span>
-          <div style={{ textAlign: 'left' }}>
-            <div style={{ fontWeight: 700, color: '#636E72' }}>Documents divers</div>
-            <div style={{ fontSize: '0.78rem', color: '#636E72' }}>PDFs et ressources partagées</div>
-          </div>
-        </button>
+
       </div>
     </div>
   )
