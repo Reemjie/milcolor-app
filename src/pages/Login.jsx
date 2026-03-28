@@ -24,6 +24,11 @@ export default function Login() {
     }, 400)
   }
 
+  const enterAsAnimateur = () => {
+    login(import.meta.env.VITE_ANIM_PASSWORD || 'milcolor2026')
+    navigate('/', { replace: true })
+  }
+
   return (
     <div style={{
       minHeight: '100dvh',
@@ -102,7 +107,13 @@ export default function Login() {
         </button>
       </form>
 
-      <p style={{ marginTop: 24, fontSize: '0.8rem', color: 'var(--text2)', textAlign: 'center' }}>
+      <div style={{ marginTop: 16, textAlign: 'center' }}>
+        <p style={{ fontSize: '0.82rem', color: 'var(--text2)', marginBottom: 12 }}>ou</p>
+        <button onClick={enterAsAnimateur} style={{ background: 'none', border: '2px solid var(--border)', borderRadius: 12, padding: '12px 24px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text2)', cursor: 'pointer', width: '100%', maxWidth: 380 }}>
+          🎨 Accéder en tant qu'animateur
+        </button>
+      </div>
+      <p style={{ marginTop: 16, fontSize: '0.8rem', color: 'var(--text2)', textAlign: 'center' }}>
         Milcolor · Centre de loisirs
       </p>
     </div>
