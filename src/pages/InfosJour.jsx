@@ -25,7 +25,7 @@ export default function InfosJour() {
   const [impressions, setImpressions] = useState([])
   const [showImpForm, setShowImpForm] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [impForm, setImpForm] = useState({ nom: '', taille: 'A4', quantite: 1, auteur: sessionStorage.getItem('chat_auteur') || '', file: null })
+  const [impForm, setImpForm] = useState({ nom: '', taille: 'A4', quantite: 1, auteur: sessionStorage.getItem('chat_auteur') || '', files: [] })
   const today = new Date().toISOString().slice(0, 10)
 
   useEffect(() => { fetchItems(); fetchImpressions() }, [])
@@ -50,23 +50,25 @@ export default function InfosJour() {
   }
 
   async function uploadImpression() {
-    if (!impForm.nom || !impForm.file) return
+    if (!impForm.nom || impForm.files.length === 0) return
     setUploading(true)
-    const filename = `${Date.now()}_${impForm.file.name}`
-    await supabase.storage.from('impressions').upload(filename, impForm.file)
-    const { data } = supabase.storage.from('impressions').getPublicUrl(filename)
-    await supabase.from('impressions').insert([{
-      nom: impForm.nom,
-      url: data.publicUrl,
-      taille: impForm.taille,
-      quantite: impForm.quantite,
-      auteur: impForm.auteur || null,
-      jour: today,
-    }])
     if (impForm.auteur) sessionStorage.setItem('chat_auteur', impForm.auteur)
+    for (const file of impForm.files) {
+      const filename = `${Date.now()}_${file.name}`
+      await supabase.storage.from('impressions').upload(filename, file)
+      const { data } = supabase.storage.from('impressions').getPublicUrl(filename)
+      await supabase.from('impressions').insert([{
+        nom: impForm.files.length > 1 ? `${impForm.nom} (${file.name})` : impForm.nom,
+        url: data.publicUrl,
+        taille: impForm.taille,
+        quantite: impForm.quantite,
+        auteur: impForm.auteur || null,
+        jour: today,
+      }])
+    }
     setUploading(false)
     setShowImpForm(false)
-    setImpForm({ nom: '', taille: 'A4', quantite: 1, auteur: sessionStorage.getItem('chat_auteur') || '', file: null })
+    setImpForm({ nom: '', taille: 'A4', quantite: 1, auteur: sessionStorage.getItem('chat_auteur') || '', files: [] })
     fetchImpressions()
   }
 
@@ -308,21 +310,29 @@ export default function InfosJour() {
               <button onClick={() => setImpForm(f => ({ ...f, quantite: f.quantite + 1 }))} style={{ width: 44, height: 44, borderRadius: 12, background: '#9B5DE5', border: 'none', color: 'white', fontSize: '1.3rem', fontWeight: 700 }}>+</button>
             </div>
             <label style={lStyle}>Fichier (PDF ou image) *</label>
-            {impForm.file ? (
-              <div style={{ marginBottom: 14, padding: '12px', background: '#f0edf8', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ fontSize: '1.3rem' }}>📄</span>
-                <span style={{ flex: 1, fontSize: '0.85rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{impForm.file.name}</span>
-                <button onClick={() => setImpForm(f => ({ ...f, file: null }))} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 700 }}>✕</button>
+            {impForm.files.length > 0 ? (
+              <div style={{ marginBottom: 14 }}>
+                {impForm.files.map((f, i) => (
+                  <div key={i} style={{ padding: '10px 12px', background: '#f0edf8', borderRadius: 10, display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                    <span style={{ fontSize: '1.1rem' }}>📄</span>
+                    <span style={{ flex: 1, fontSize: '0.82rem', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{f.name}</span>
+                    <button onClick={() => setImpForm(x => ({ ...x, files: x.files.filter((_, j) => j !== i) }))} style={{ background: 'none', border: 'none', color: '#e74c3c', fontWeight: 700 }}>✕</button>
+                  </div>
+                ))}
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', border: '1.5px dashed #C084FC', borderRadius: 10, cursor: 'pointer', color: '#9B5DE5', fontSize: '0.82rem', fontWeight: 700 }}>
+                  + Ajouter un fichier
+                  <input type="file" accept="application/pdf,image/*" multiple onChange={e => setImpForm(f => ({ ...f, files: [...f.files, ...Array.from(e.target.files || [])] }))} style={{ display: 'none' }} />
+                </label>
               </div>
             ) : (
               <label style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '14px 16px', border: '2px dashed var(--border)', borderRadius: 12, cursor: 'pointer', color: 'var(--text2)', background: 'var(--bg)', marginBottom: 14 }}>
                 <span style={{ fontSize: '1.5rem' }}>📎</span>
                 <span style={{ fontWeight: 700, fontSize: '0.85rem' }}>Choisir un fichier</span>
-                <input type="file" accept="application/pdf,image/*" onChange={e => setImpForm(f => ({ ...f, file: e.target.files?.[0] || null }))} style={{ display: 'none' }} />
+                <input type="file" accept="application/pdf,image/*" multiple onChange={e => setImpForm(f => ({ ...f, files: Array.from(e.target.files || []) }))} style={{ display: 'none' }} />
               </label>
             )}
-            <button className="btn btn-primary" style={{ width: '100%', padding: '14px', opacity: (!impForm.nom || !impForm.file || uploading) ? 0.6 : 1 }}
-              onClick={uploadImpression} disabled={!impForm.nom || !impForm.file || uploading}>
+            <button className="btn btn-primary" style={{ width: '100%', padding: '14px', opacity: (!impForm.nom || impForm.files.length === 0 || uploading) ? 0.6 : 1 }}
+              onClick={uploadImpression} disabled={!impForm.nom || impForm.files.length === 0 || uploading}>
               {uploading ? '⏳ Upload…' : '📤 Ajouter à la liste'}
             </button>
           </div>
