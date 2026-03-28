@@ -175,9 +175,9 @@ export default function Plannings() {
       )}
 
       {fullscreen && sem?.photo_url && (
-        <div onClick={() => setFullscreen(false)} style={{ position: 'fixed', inset: 0, zIndex: 300, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <button onClick={() => setFullscreen(false)} style={{ position: 'absolute', top: 20, right: 20, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 10, padding: '8px 16px', color: 'white', fontWeight: 700 }}>✕ Fermer</button>
-          <img src={sem.photo_url} alt={sem.titre} style={{ maxWidth: '100%', maxHeight: '90dvh', objectFit: 'contain' }} />
+        <div onClick={() => setFullscreen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto' }}>
+          <button onClick={() => setFullscreen(false)} style={{ position: 'fixed', top: 20, right: 20, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 10, padding: '8px 16px', color: 'white', fontWeight: 700, zIndex: 10000 }}>✕ Fermer</button>
+          <img src={sem.photo_url} alt={sem.titre} onClick={e => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '90dvh', objectFit: 'contain', touchAction: 'pinch-zoom' }} />
         </div>
       )}
 
