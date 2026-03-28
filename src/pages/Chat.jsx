@@ -94,12 +94,6 @@ export default function Chat() {
 
         </div>
 
-        {/* Category filter */}
-        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 8 }}>
-          <button onClick={() => setFilterCat('all')} style={{ flexShrink: 0, padding: '5px 12px', borderRadius: 20, border: `2px solid ${filterCat === 'all' ? 'var(--orange)' : 'var(--border)'}`, background: filterCat === 'all' ? 'var(--orange)' : 'white', color: filterCat === 'all' ? 'white' : 'var(--text)', fontWeight: 700, fontSize: '0.72rem' }}>Tout</button>
-          {CATS.map(c => (
-            <button key={c.id} onClick={() => setFilterCat(c.id)} style={{ flexShrink: 0, padding: '5px 12px', borderRadius: 20, border: `2px solid ${filterCat === c.id ? c.color : 'var(--border)'}`, background: filterCat === c.id ? c.color : 'white', color: filterCat === c.id ? 'white' : 'var(--text)', fontWeight: 700, fontSize: '0.72rem' }}>{c.label}</button>
-          ))}
         </div>
       </div>
 
