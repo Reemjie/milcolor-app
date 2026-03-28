@@ -138,8 +138,17 @@ export default function Plannings() {
               </div>
               {sem.photo_url ? (
                 <div style={{ position: 'relative' }}>
-                  <img src={sem.photo_url} alt={sem.titre} onClick={() => setFullscreen(true)} style={{ width: '100%', display: 'block', cursor: 'zoom-in', maxHeight: 500, objectFit: 'contain', background: '#f8f8f8' }} />
-                  <a href={sem.photo_url} target="_blank" rel="noreferrer" style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: 'white', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}>🔍 Agrandir</a>
+                  {sem.photo_url.toLowerCase().includes('.pdf') ? (
+                    <div style={{ padding: '30px 20px', textAlign: 'center', background: '#f0edf8' }}>
+                      <div style={{ fontSize: '3rem', marginBottom: 10 }}>📄</div>
+                      <a href={sem.photo_url} target="_blank" rel="noreferrer" style={{ display: 'inline-block', padding: '12px 24px', borderRadius: 12, background: '#9B5DE5', color: 'white', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>👁 Ouvrir le planning PDF</a>
+                    </div>
+                  ) : (
+                    <>
+                      <img src={sem.photo_url} alt={sem.titre} style={{ width: '100%', display: 'block', maxHeight: 500, objectFit: 'contain', background: '#f8f8f8' }} />
+                      <a href={sem.photo_url} target="_blank" rel="noreferrer" style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: 'white', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}>🔍 Agrandir</a>
+                    </>
+                  )}
                 </div>
               ) : (
                 <div style={{ padding: '50px 20px', textAlign: 'center', color: 'var(--text2)', background: 'var(--bg)' }}>
