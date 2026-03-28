@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
-import { useNavigate } from 'react-router-dom'
 
 const CATS = [
   { id: 'general', label: '💬 Général', color: '#118AB2', bg: '#E8F4FF' },
@@ -22,20 +21,20 @@ function timeAgo(d) {
 
 export default function Chat() {
   const { isAdmin } = useAuth()
-  const navigate = useNavigate()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [auteur, setAuteur] = useState(sessionStorage.getItem('chat_auteur') || '')
   const [texte, setTexte] = useState('')
   const [cat, setCat] = useState('general')
   const [showAuteur, setShowAuteur] = useState(!sessionStorage.getItem('chat_auteur'))
-  const [filterCat, setFilterCat] = useState('all')
   const [sending, setSending] = useState(false)
   const bottomRef = useRef(null)
 
   useEffect(() => {
     fetchMessages()
-    const channel = supabase.channel('chat').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'remarques' }, () => fetchMessages()).subscribe()
+    const channel = supabase.channel('chat')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'remarques' }, () => fetchMessages())
+      .subscribe()
     return () => supabase.removeChannel(channel)
   }, [])
 
@@ -64,8 +63,6 @@ export default function Chat() {
     fetchMessages()
   }
 
-  const filtered = filterCat === 'all' ? messages : messages.filter(m => m.categorie === filterCat)
-
   if (showAuteur) {
     return (
       <div className="page-enter" style={{ padding: '60px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60dvh' }}>
@@ -83,30 +80,27 @@ export default function Chat() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100dvh - 130px)' }}>
       {/* Header */}
-      <div style={{ padding: '16px 16px 0', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+      <div style={{ padding: '16px 16px 8px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
             <h1 style={{ fontSize: '1.4rem' }}>💬 Chat & remarques</h1>
             <button onClick={() => setShowAuteur(true)} style={{ background: 'none', border: 'none', fontSize: '0.75rem', color: 'var(--text2)', padding: 0, cursor: 'pointer' }}>
               👤 {auteur} · changer
             </button>
           </div>
-
-        </div>
-
         </div>
       </div>
 
       {/* Messages */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px' }}>
         {loading && <div className="spinner" />}
-        {!loading && filtered.length === 0 && (
+        {!loading && messages.length === 0 && (
           <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text2)' }}>
             <div style={{ fontSize: '2.5rem', marginBottom: 8 }}>💬</div>
             <p>Pas encore de messages. Sois le premier !</p>
           </div>
         )}
-        {filtered.map(m => {
+        {messages.map(m => {
           const c = CATS.find(x => x.id === m.categorie) || CATS[0]
           const isMe = m.auteur === auteur
           return (
@@ -139,13 +133,7 @@ export default function Chat() {
           ))}
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
-          <input
-            value={texte}
-            onChange={e => setTexte(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-            placeholder="Écris un message…"
-            style={{ flex: 1, padding: '11px 14px', borderRadius: 22, border: '2px solid var(--border)', fontSize: '0.9rem', background: 'var(--bg)' }}
-          />
+          <input value={texte} onChange={e => setTexte(e.target.value)} onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()} placeholder="Écris un message…" style={{ flex: 1, padding: '11px 14px', borderRadius: 22, border: '2px solid var(--border)', fontSize: '0.9rem', background: 'var(--bg)' }} />
           <button onClick={sendMessage} disabled={!texte.trim() || sending} style={{ width: 44, height: 44, borderRadius: '50%', background: texte.trim() ? 'var(--orange)' : 'var(--border)', border: 'none', color: 'white', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             {sending ? '⏳' : '↑'}
           </button>
