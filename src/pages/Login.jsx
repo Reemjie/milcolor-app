@@ -36,15 +36,13 @@ export default function Login() {
     }}>
       {/* Logo / Header */}
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
-        <div style={{
-          width: 80, height: 80,
-          background: 'var(--orange)',
+        <img src="/milcolor-app/icon-512.png" alt="Milcolor App" style={{
+          width: 100, height: 100,
           borderRadius: 24,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '2.2rem',
           margin: '0 auto 16px',
+          display: 'block',
           boxShadow: '0 8px 24px rgba(255,107,53,0.35)',
-        }}>🎨</div>
+        }} />
         <h1 style={{ fontSize: '2rem', color: 'var(--orange)', fontFamily: 'Fredoka' }}>Milcolor App</h1>
         <p style={{ color: 'var(--text2)', marginTop: 6, fontSize: '0.95rem' }}>
           L'espace des animateurs
