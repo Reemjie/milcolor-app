@@ -75,6 +75,7 @@ export default function EvaluationBafa() {
   const [step, setStep] = useState(0)
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
+  const [pin, setPin] = useState('')
   const [moment, setMoment] = useState('avant')
   const [scores, setScores] = useState({})
   const [objectifsDebut, setObjectifsDebut] = useState('')
@@ -94,6 +95,7 @@ export default function EvaluationBafa() {
       setPrenom(data.stagiaire_prenom)
       setMoment(data.moment)
       setScores(data.scores || {})
+      setPin(data.pin || '')
       setObjectifsDebut(data.objectifs_debut || '')
       setPointsATravailler(data.points_a_travailler || '')
       setObjectifsEval(data.objectifs_evaluation || '')
@@ -112,6 +114,7 @@ export default function EvaluationBafa() {
     const payload = {
       stagiaire_nom: nom.trim().toUpperCase(),
       stagiaire_prenom: prenom.trim(),
+      pin: pin.trim(),
       moment, scores,
       objectifs_debut: objectifsDebut,
       points_a_travailler: pointsATravailler,
@@ -163,6 +166,11 @@ export default function EvaluationBafa() {
                 <input value={nom} onChange={e => setNom(e.target.value)} placeholder="DUPONT" style={iStyle} />
               </div>
             </div>
+            <div style={{ marginBottom: 16 }}>
+              <label style={lStyle}>Code PIN *</label>
+              <input value={pin} onChange={e => setPin(e.target.value.replace(/\D/g,'').slice(0,4))} placeholder="4 chiffres ex: 1234" maxLength={4} inputMode="numeric" style={{ ...iStyle, letterSpacing: '0.3em', textAlign: 'center', fontSize: '1.2rem' }} />
+              <p style={{ fontSize: '0.75rem', color: 'var(--text2)', marginTop: 4 }}>Ce code te permettra de retrouver ton évaluation plus tard</p>
+            </div>
             <label style={lStyle}>Moment de l'évaluation</label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
               {MOMENTS.map(m => (
@@ -172,7 +180,7 @@ export default function EvaluationBafa() {
                 </button>
               ))}
             </div>
-            <button className="btn btn-primary" style={{ width: '100%', padding: '15px', opacity: (!nom || !prenom) ? 0.6 : 1 }} onClick={() => setStep(1)} disabled={!nom || !prenom}>Suivant →</button>
+            <button className="btn btn-primary" style={{ width: '100%', padding: '15px', opacity: (!nom || !prenom) ? 0.6 : 1 }} onClick={() => setStep(1)} disabled={!nom || !prenom || pin.length < 4}>Suivant →</button>
           </div>
         )}
 
