@@ -4,16 +4,7 @@ import { supabase } from '../lib/supabase'
 
 const COLORS = ['#FF6B35', '#FFD166', '#06D6A0', '#118AB2', '#FF6B9D', '#9B5DE5']
 
-async function uploadToStorage(file) {
-  const ext = file.name.split('.').pop()
-  const filename = `planning_${Date.now()}.${ext}`
-  const { error } = await import('./lib/supabase').then(m => 
-    m.supabase.storage.from('plannings').upload(filename, file, { upsert: true })
-  )
-  if (error) return null
-  const { data } = (await import('./lib/supabase')).supabase.storage.from('plannings').getPublicUrl(filename)
-  return data.publicUrl
-}
+
 
 export default function Plannings() {
   const { isAdmin } = useAuth()
