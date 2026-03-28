@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/milcolor-app/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#FF6B35" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -19,10 +19,11 @@
       await OneSignal.init({
         appId: "6f0e5885-7f27-4209-9ae3-c0d33504745f",
         serviceWorkerPath: "/milcolor-app/OneSignalSDK.sw.js",
+        serviceWorkerParam: { scope: "/milcolor-app/" },
       });
     });
   </script>
-    <script type="module" crossorigin src="/milcolor-app/assets/index-DQUhQ6mK.js"></script>
+    <script type="module" crossorigin src="/milcolor-app/assets/index-5rHwOGrq.js"></script>
     <link rel="stylesheet" crossorigin href="/milcolor-app/assets/index-DT-cvDhS.css">
   </head>
   <body>
