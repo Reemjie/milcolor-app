@@ -6,7 +6,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, loginAsAnimateur } = useAuth()
   const navigate = useNavigate()
 
   const handleSubmit = (e) => {
@@ -25,7 +25,7 @@ export default function Login() {
   }
 
   const enterAsAnimateur = () => {
-    login(import.meta.env.VITE_ANIM_PASSWORD || 'milcolor2026')
+    loginAsAnimateur()
     navigate('/', { replace: true })
   }
 

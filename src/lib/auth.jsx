@@ -22,13 +22,18 @@ export function AuthProvider({ children }) {
     return null
   }
 
+  const loginAsAnimateur = () => {
+    setRole('animateur')
+    sessionStorage.setItem('milcolor_role', 'animateur')
+  }
+
   const logout = () => {
     setRole(null)
     sessionStorage.removeItem('milcolor_role')
   }
 
   return (
-    <AuthContext.Provider value={{ role, login, logout, isAdmin: role === 'admin', isLoggedIn: !!role }}>
+    <AuthContext.Provider value={{ role, login, loginAsAnimateur, logout, isAdmin: role === 'admin', isLoggedIn: !!role }}>
       {children}
     </AuthContext.Provider>
   )
