@@ -160,7 +160,7 @@ export default function Plannings() {
               {sem.photo_url ? (
                 <div style={{ position: 'relative' }}>
                   <img src={sem.photo_url} alt={sem.titre} onClick={() => setFullscreen(true)} style={{ width: '100%', display: 'block', cursor: 'zoom-in', maxHeight: 500, objectFit: 'contain', background: '#f8f8f8' }} />
-                  <button onClick={() => setFullscreen(true)} style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: 'white', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700 }}>🔍 Agrandir</button>
+                  <a href={sem.photo_url} target="_blank" rel="noreferrer" style={{ position: 'absolute', bottom: 10, right: 10, background: 'rgba(0,0,0,0.55)', color: 'white', border: 'none', borderRadius: 8, padding: '6px 12px', fontSize: '0.78rem', fontWeight: 700, textDecoration: 'none' }}>🔍 Agrandir</a>
                 </div>
               ) : (
                 <div style={{ padding: '50px 20px', textAlign: 'center', color: 'var(--text2)', background: 'var(--bg)' }}>
@@ -174,12 +174,7 @@ export default function Plannings() {
         </>
       )}
 
-      {fullscreen && sem?.photo_url && (
-        <div onClick={() => setFullscreen(false)} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, background: 'rgba(0,0,0,0.95)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto' }}>
-          <button onClick={() => setFullscreen(false)} style={{ position: 'fixed', top: 20, right: 20, background: 'rgba(255,255,255,0.15)', border: 'none', borderRadius: 10, padding: '8px 16px', color: 'white', fontWeight: 700, zIndex: 10000 }}>✕ Fermer</button>
-          <img src={sem.photo_url} alt={sem.titre} onClick={e => e.stopPropagation()} style={{ maxWidth: '100%', maxHeight: '90dvh', objectFit: 'contain', touchAction: 'pinch-zoom' }} />
-        </div>
-      )}
+
 
       {/* MODAL — centré verticalement, pas en bas */}
       {showForm && (
