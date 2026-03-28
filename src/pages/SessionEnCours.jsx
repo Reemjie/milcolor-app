@@ -174,24 +174,26 @@ export default function SessionEnCours() {
                 </div>
               </div>
 
-              {/* Actions fin de session */}
-              <div style={{ borderTop: '1px solid var(--border)', padding: '10px 16px', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text2)', fontWeight: 600 }}>Fin de session :</span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <button
-                    onClick={() => archiver(a.id)}
-                    style={{ padding: '6px 14px', borderRadius: 8, background: '#E0FBF1', border: '1.5px solid #06D6A0', color: '#0A7A5A', fontWeight: 700, fontSize: '0.78rem' }}
-                  >
-                    🗂 Archiver
-                  </button>
-                  <button
-                    onClick={() => supprimer(a.id)}
-                    style={{ padding: '6px 12px', borderRadius: 8, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.78rem' }}
-                  >
-                    🗑 Supprimer
-                  </button>
+              {/* Actions fin de session — admin seulement */}
+              {isAdmin && (
+                <div style={{ borderTop: '1px solid var(--border)', padding: '10px 16px', background: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text2)', fontWeight: 600 }}>Fin de session :</span>
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <button
+                      onClick={() => archiver(a.id)}
+                      style={{ padding: '6px 14px', borderRadius: 8, background: '#E0FBF1', border: '1.5px solid #06D6A0', color: '#0A7A5A', fontWeight: 700, fontSize: '0.78rem' }}
+                    >
+                      🗂 Archiver
+                    </button>
+                    <button
+                      onClick={() => supprimer(a.id)}
+                      style={{ padding: '6px 12px', borderRadius: 8, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.78rem' }}
+                    >
+                      🗑 Supprimer
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           )
         })}
