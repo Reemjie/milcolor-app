@@ -10,7 +10,10 @@ export default function Notifications() {
   const [form, setForm] = useState({ titre: '', message: '', type: 'info' })
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { fetchNotifs(); markAllRead() }, [])
+  useEffect(() => { 
+    fetchNotifs()
+    return () => { markAllRead() }
+  }, [])
 
   async function fetchNotifs() {
     setLoading(true)
