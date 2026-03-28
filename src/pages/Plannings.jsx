@@ -4,32 +4,15 @@ import { supabase } from '../lib/supabase'
 
 const COLORS = ['#FF6B35', '#FFD166', '#06D6A0', '#118AB2', '#FF6B9D', '#9B5DE5']
 
-function resizeImage(file) {
-  return new Promise(resolve => {
-    const reader = new FileReader()
-    reader.onload = e => {
-      const img = new Image()
-      img.onload = () => {
-        const attempts = [
-          { maxW: 1400, q: 0.85 }, { maxW: 1100, q: 0.78 },
-          { maxW: 900, q: 0.70 }, { maxW: 700, q: 0.62 },
-        ]
-        let dataUrl = null
-        for (const { maxW, q } of attempts) {
-          let w = img.width, h = img.height
-          if (w > maxW) { h = Math.round(h * maxW / w); w = maxW }
-          const c = document.createElement('canvas')
-          c.width = w; c.height = h
-          c.getContext('2d').drawImage(img, 0, 0, w, h)
-          dataUrl = c.toDataURL('image/jpeg', q)
-          if (dataUrl.length < 2_500_000) break
-        }
-        resolve(dataUrl)
-      }
-      img.src = e.target.result
-    }
-    reader.readAsDataURL(file)
-  })
+async function uploadToStorage(file) {
+  const ext = file.name.split('.').pop()
+  const filename = `planning_${Date.now()}.${ext}`
+  const { error } = await import('./lib/supabase').then(m => 
+    m.supabase.storage.from('plannings').upload(filename, file, { upsert: true })
+  )
+  if (error) return null
+  const { data } = (await import('./lib/supabase')).supabase.storage.from('plannings').getPublicUrl(filename)
+  return data.publicUrl
 }
 
 export default function Plannings() {
@@ -56,9 +39,14 @@ export default function Plannings() {
   async function handlePhoto(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    const dataUrl = await resizeImage(file)
-    setPhotoPreview(dataUrl)
-    setForm(f => ({ ...f, photo_url: dataUrl }))
+    setPhotoPreview('loading')
+    const ext = file.name.split('.').pop()
+    const filename = `planning_${Date.now()}.${ext}`
+    const { error } = await supabase.storage.from('plannings').upload(filename, file, { upsert: true })
+    if (error) { alert('Erreur upload: ' + error.message); setPhotoPreview(null); return }
+    const { data } = supabase.storage.from('plannings').getPublicUrl(filename)
+    setPhotoPreview(data.publicUrl)
+    setForm(f => ({ ...f, photo_url: data.publicUrl }))
   }
 
   async function saveSemaine() {
@@ -207,7 +195,7 @@ export default function Plannings() {
                   <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
                     <label style={{ flex: 1, textAlign: 'center', padding: '10px', background: 'var(--bg)', borderRadius: 10, border: '2px solid var(--border)', fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer', color: 'var(--text2)' }}>
                       📷 Changer
-                      <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
+                      <input type="file" accept="image/*,application/pdf" onChange={handlePhoto} style={{ display: 'none' }} />
                     </label>
                     <button onClick={() => { setPhotoPreview(null); setForm(f => ({ ...f, photo_url: '' })) }} style={{ padding: '10px 16px', background: '#fff0f0', border: '2px solid #f5c6cb', borderRadius: 10, fontWeight: 700, fontSize: '0.82rem', color: '#e74c3c' }}>🗑</button>
                   </div>
@@ -216,8 +204,8 @@ export default function Plannings() {
                 <label style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, padding: '24px 20px', border: '2px dashed var(--border)', borderRadius: 14, cursor: 'pointer', color: 'var(--text2)', background: 'var(--bg)' }}>
                   <span style={{ fontSize: '2rem' }}>📷</span>
                   <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>Uploader l'image du planning</span>
-                  <span style={{ fontSize: '0.75rem' }}>Photo ou scan du planning papier</span>
-                  <input type="file" accept="image/*" onChange={handlePhoto} style={{ display: 'none' }} />
+                  <span style={{ fontSize: '0.75rem' }}>PDF ou photo du planning</span>
+                  <input type="file" accept="image/*,application/pdf" onChange={handlePhoto} style={{ display: 'none' }} />
                 </label>
               )}
             </div>
