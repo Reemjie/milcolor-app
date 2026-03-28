@@ -78,6 +78,7 @@ export default function EvaluationBafa() {
   const [moment, setMoment] = useState('avant')
   const [scores, setScores] = useState({})
   const [objectifsDebut, setObjectifsDebut] = useState('')
+  const [pointsATravailler, setPointsATravailler] = useState('')
   const [objectifsEval, setObjectifsEval] = useState('')
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -94,6 +95,7 @@ export default function EvaluationBafa() {
       setMoment(data.moment)
       setScores(data.scores || {})
       setObjectifsDebut(data.objectifs_debut || '')
+      setPointsATravailler(data.points_a_travailler || '')
       setObjectifsEval(data.objectifs_evaluation || '')
     }
     setLoading(false)
@@ -112,6 +114,7 @@ export default function EvaluationBafa() {
       stagiaire_prenom: prenom.trim(),
       moment, scores,
       objectifs_debut: objectifsDebut,
+      points_a_travailler: pointsATravailler,
       objectifs_evaluation: objectifsEval,
       updated_at: new Date().toISOString(),
     }
@@ -216,7 +219,7 @@ export default function EvaluationBafa() {
 
         {step === 2 && (
           <div>
-            <div style={{ background: '#E8F4FF', border: '2px solid #74B9FF', borderRadius: 14, padding: '14px 16px', marginBottom: 20 }}>
+            <div style={{ background: '#E8F4FF', border: '2px solid #74B9FF', borderRadius: 14, padding: '14px 16px', marginBottom: 16 }}>
               <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#118AB2', marginBottom: 8 }}>📊 {totalFilled()}/{totalCriteres()} critères évalués</div>
               <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                 {Object.entries(CRITERES).map(([section, crites]) => {
@@ -232,6 +235,40 @@ export default function EvaluationBafa() {
                 })}
               </div>
             </div>
+
+            {/* Priorités automatiques */}
+            {(() => {
+              const all = Object.values(CRITERES).flat()
+              const scored = all.filter(c => scores[c] > 0).sort((a, b) => scores[a] - scores[b])
+              const top3 = scored.slice(0, 3)
+              if (top3.length === 0) return null
+              return (
+                <div style={{ background: '#FFE8E8', border: '2px solid #FF6B6B', borderRadius: 14, padding: '14px 16px', marginBottom: 16 }}>
+                  <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#CC3333', marginBottom: 10 }}>🎯 3 points prioritaires identifiés</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                    {top3.map((critere, i) => (
+                      <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, background: 'white', borderRadius: 10, padding: '10px 12px' }}>
+                        <div style={{ width: 24, height: 24, borderRadius: '50%', background: '#CC3333', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.75rem', flexShrink: 0 }}>{i + 1}</div>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: '0.82rem', lineHeight: 1.4, color: 'var(--text)', marginBottom: 2 }}>{critere}</p>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            {[1,2,3,4].map(v => (
+                              <div key={v} style={{ width: 20, height: 6, borderRadius: 3, background: v <= scores[critere] ? '#CC3333' : 'var(--border)' }} />
+                            ))}
+                            <span style={{ fontSize: '0.7rem', color: '#CC3333', fontWeight: 700 }}>{scores[critere]}/4</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })()}
+            <label style={lStyle}>Points supplémentaires à travailler</label>
+            <textarea value={pointsATravailler} onChange={e => setPointsATravailler(e.target.value)}
+              placeholder="Ajoute ici d'autres points à travailler identifiés..."
+              rows={3} style={{ ...iStyle, resize: 'vertical', marginBottom: 16 }} />
+
             <label style={lStyle}>Objectifs fixés en début de stage</label>
             <textarea value={objectifsDebut} onChange={e => setObjectifsDebut(e.target.value)} placeholder="Quels sont les objectifs personnels fixés au départ ?" rows={4} style={{ ...iStyle, resize: 'vertical', marginBottom: 16 }} />
             <label style={lStyle}>Évaluation des objectifs</label>
