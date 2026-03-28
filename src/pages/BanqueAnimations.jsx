@@ -18,6 +18,7 @@ export default function BanqueAnimations() {
   const [loading, setLoading] = useState(true)
   const [filterType, setFilterType] = useState('all')
   const [filterAge, setFilterAge] = useState('all')
+  const [filterAnim, setFilterAnim] = useState('all')
   const [search, setSearch] = useState('')
 
   useEffect(() => { fetchActivites() }, [])
