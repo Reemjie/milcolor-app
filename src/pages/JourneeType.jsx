@@ -131,7 +131,10 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder, withPdf }) {
             <div style={{ marginBottom: 16, padding: '12px 14px', background: 'var(--bg)', borderRadius: 12, display: 'flex', alignItems: 'center', gap: 10 }}>
               <span style={{ fontSize: '1.5rem' }}>📄</span>
               <span style={{ flex: 1, fontWeight: 700, fontSize: '0.85rem' }}>Journée type (PDF)</span>
-              <a href={pdfUrl} target="_blank" rel="noreferrer" style={{ padding: '6px 12px', borderRadius: 8, background: color, color: 'white', fontWeight: 700, fontSize: '0.78rem', textDecoration: 'none' }}>👁 Ouvrir</a>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <a href={pdfUrl} target="_blank" rel="noreferrer" style={{ padding: '6px 12px', borderRadius: 8, background: color, color: 'white', fontWeight: 700, fontSize: '0.78rem', textDecoration: 'none' }}>👁 Ouvrir</a>
+                {isAdmin && <button onClick={async () => { if (!confirm('Supprimer le PDF ?')) return; const filename = pdfUrl.split('/').pop(); await supabase.storage.from('documents').remove([`sections/${filename}`]); await supabase.from('documents').update({ pdf_url: null }).eq('section_id', sectionId); setPdfUrl(null); fetchDoc() }} style={{ padding: '6px 10px', borderRadius: 8, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.78rem' }}>🗑</button>}
+              </div>
             </div>
           )}
           {doc?.contenu ? (
