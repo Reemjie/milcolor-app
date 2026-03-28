@@ -18,6 +18,8 @@ import Notifications from './pages/Notifications'
 import GrandsJeux from './pages/GrandsJeux'
 import InfosEnfants from './pages/InfosEnfants'
 import InfosJour from './pages/InfosJour'
+import EvaluationBafa from './pages/EvaluationBafa'
+import EvaluationsList from './pages/EvaluationsList'
 import Bilan from './pages/Bilan'
 import ListeMateriel from './pages/ListeMateriel'
 import BilansList from './pages/BilansList'
@@ -50,6 +52,9 @@ export default function App() {
         <Route path="grands-jeux" element={<GrandsJeux />} />
         <Route path="infos-enfants" element={<InfosEnfants />} />
         <Route path="infos-jour" element={<InfosJour />} />
+        <Route path="evaluations-bafa" element={<EvaluationsList />} />
+        <Route path="evaluations-bafa/nouvelle" element={<EvaluationBafa />} />
+        <Route path="evaluations-bafa/:id" element={<EvaluationBafa />} />
         <Route path="bilans" element={<BilansList />} />
         <Route path="bilans/nouveau" element={<Bilan />} />
         <Route path="bilans/:id" element={<Bilan />} />
