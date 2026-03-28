@@ -139,7 +139,7 @@ function TextPage({ sectionId, icon, title, color, bg, placeholder, withPdf }) {
           )}
           {doc?.contenu ? (
             <div style={{ fontSize: '0.92rem', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{doc.contenu}</div>
-          ) : !doc?.photo_url ? (
+          ) : !doc?.photo_url && !pdfUrl ? (
             <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text2)' }}>
               <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>{icon}</div>
               <p style={{ fontWeight: 700 }}>Pas encore de contenu</p>
