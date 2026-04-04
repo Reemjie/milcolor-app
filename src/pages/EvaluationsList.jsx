@@ -55,7 +55,7 @@ export default function EvaluationsList() {
 
       {loading && <div className="spinner" />}
 
-      {!loading && evals.length === 0 && (
+      {!loading && isAdmin && evals.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text2)' }}>
           <div style={{ fontSize: '3rem', marginBottom: 12 }}>⭐</div>
           <p style={{ fontWeight: 700 }}>Aucune évaluation</p>
