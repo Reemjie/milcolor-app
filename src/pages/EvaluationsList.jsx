@@ -65,7 +65,7 @@ export default function EvaluationsList() {
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-        {Object.entries(grouped).map(([stagiaire, evList]) => (
+        {isAdmin && Object.entries(grouped).map(([stagiaire, evList]) => (
           <div key={stagiaire} className="card" style={{ overflow: 'hidden' }}>
             <div style={{ background: 'var(--bg)', padding: '12px 16px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10 }}>
               <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem', flexShrink: 0 }}>
