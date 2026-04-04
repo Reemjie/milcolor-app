@@ -13,11 +13,12 @@ export default function EvaluationsList() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [evals, setEvals] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
-  useEffect(() => { fetchEvals() }, [])
+  useEffect(() => { if (isAdmin) fetchEvals() }, [isAdmin])
 
   async function fetchEvals() {
+    if (!isAdmin) return
     setLoading(true)
     const { data } = await supabase.from('evaluations_bafa').select('*').order('stagiaire_nom').order('created_at')
     setEvals(data || [])
