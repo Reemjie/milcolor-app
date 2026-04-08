@@ -235,6 +235,14 @@ export default function Accueil() {
         </div>
       </button>
 
+      <button onClick={() => navigate('/liens-utiles')} style={{ background: '#E8F4FF', border: '2px solid #118AB2', borderRadius: 14, padding: '14px 16px', width: '100%', display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+        <span style={{ fontSize: '1.5rem' }}>🔗</span>
+        <div style={{ textAlign: 'left' }}>
+          <div style={{ fontWeight: 700, color: '#118AB2' }}>Liens utiles</div>
+          <div style={{ fontSize: '0.78rem', color: '#118AB2' }}>Réglementation, pédagogie, ressources</div>
+        </div>
+      </button>
+
       {/* Boutons urgences / objectifs */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         <button onClick={() => navigate('/urgences')} style={{
