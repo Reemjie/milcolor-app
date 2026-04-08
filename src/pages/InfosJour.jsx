@@ -45,7 +45,7 @@ export default function InfosJour() {
   }
 
   async function fetchImpressions() {
-    const { data } = await supabase.from('impressions').select('*').eq('jour', today).order('created_at', { ascending: false })
+    const { data } = await supabase.from('impressions').select('*').order('created_at', { ascending: false })
     setImpressions(data || [])
   }
 
