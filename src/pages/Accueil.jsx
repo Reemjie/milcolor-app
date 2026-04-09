@@ -59,7 +59,7 @@ export default function Accueil() {
 
   async function fetchAlertesMateriel() {
     const { data } = await supabase.from('materiel').select('*').eq('statut', 'alerte').order('created_at', { ascending: false }).limit(2)
-    setAlertes(data || [])
+    setAlertesMateriel(data || [])
   }
 
   const now = new Date()
