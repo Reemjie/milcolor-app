@@ -21,7 +21,6 @@ export default function Accueil() {
     fetchAlertes()
   }, [])
   const [notifs, setNotifs] = useState([])
-  const [alertes, setAlertes] = useState([])
   const [bilans, setBilans] = useState([])
   const [bilanOuvert, setBilanOuvert] = useState(null)
   const [note, setNote] = useState('')
