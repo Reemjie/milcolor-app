@@ -79,6 +79,7 @@ export default function Notifications() {
                   <div>
                     <div style={{ fontWeight: 700, fontSize: '0.9rem', marginBottom: 4 }}>{n.titre}</div>
                     {n.message && <p style={{ fontSize: '0.82rem', color: 'var(--text2)', lineHeight: 1.5 }}>{n.message}</p>}
+                    {n.lien && <span style={{ fontSize: '0.75rem', color: t.color, fontWeight: 700, marginTop: 4, display: 'inline-block' }}>Voir →</span>}
                     <div style={{ fontSize: '0.72rem', color: 'var(--text2)', marginTop: 6 }}>
                       {new Date(n.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
                     </div>
