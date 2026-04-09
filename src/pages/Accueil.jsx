@@ -7,6 +7,7 @@ export default function Accueil() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [alertesMateriel, setAlertesMateriel] = useState([])
+  const [alertes, setAlertes] = useState([])
 
   useEffect(() => {
     async function fetchAlertes() {
