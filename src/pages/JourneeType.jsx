@@ -237,7 +237,10 @@ export function Objectifs() {
         const { data } = supabase.storage.from('objectifs').getPublicUrl(filename)
         url = data.publicUrl
       }
-      if (url) await supabase.from('objectifs_fichiers').insert([{ url, nom: file.name }])
+      if (url) {
+        await supabase.from('objectifs_fichiers').insert([{ url, nom: file.name }])
+        await supabase.from('notifications').insert([{ titre: '🎯 Objectifs mis à jour', message: `Fichier ajouté : ${file.name}`, type: 'info', lue: false }])
+      }
     }
     setUploading(false)
     e.target.value = ''
