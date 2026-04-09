@@ -18,8 +18,18 @@ export default function Layout() {
 
   useEffect(() => {
     fetchUnread()
-    const channel = supabase.channel('notifs').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => fetchUnread()).subscribe()
-    return () => supabase.removeChannel(channel)
+    const tables = ['remarques', 'infos_jour', 'bilans', 'materiel', 'impressions',
+                    'activites', 'plannings', 'documents', 'grands_jeux', 'objectifs_fichiers',
+                    'notifications', 'liens_utiles', 'animations_rapides', 'evaluations_bafa']
+    const channels = [
+      supabase.channel('notifs').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, () => fetchUnread()).subscribe(),
+      ...tables.map(table =>
+        supabase.channel(`new_${table}`)
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table }, () => setUnread(n => n + 1))
+          .subscribe()
+      )
+    ]
+    return () => channels.forEach(c => supabase.removeChannel(c))
   }, [])
 
   async function fetchUnread() {
