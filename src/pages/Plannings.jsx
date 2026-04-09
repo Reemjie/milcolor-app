@@ -54,6 +54,7 @@ export default function Plannings() {
       await supabase.from('plannings').update(payload).eq('id', editItem.id)
     } else {
       await supabase.from('plannings').insert([payload])
+      await supabase.from('notifications').insert([{ titre: `📅 Nouveau planning — ${payload.titre}`, message: `Planning ajouté`, type: 'info', lue: false }])
     }
     setSaving(false)
     setShowForm(false)
