@@ -6,6 +6,20 @@ import { supabase } from '../lib/supabase'
 export default function Accueil() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
+  const [alertes, setAlertes] = useState([])
+
+  useEffect(() => {
+    async function fetchAlertes() {
+      const { data: msgs } = await supabase.from('remarques').select('*').eq('categorie', 'urgent').order('created_at', { ascending: false }).limit(5)
+      const { data: notifs } = await supabase.from('notifications').select('*').eq('lue', false).order('created_at', { ascending: false }).limit(3)
+      const all = [
+        ...(msgs || []).map(m => ({ ...m, _type: 'chat' })),
+        ...(notifs || []).map(n => ({ ...n, _type: 'notif' })),
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      setAlertes(all)
+    }
+    fetchAlertes()
+  }, [])
   const [notifs, setNotifs] = useState([])
   const [alertes, setAlertes] = useState([])
   const [bilans, setBilans] = useState([])
