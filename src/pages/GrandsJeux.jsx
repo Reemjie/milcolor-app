@@ -70,6 +70,7 @@ export default function GrandsJeux() {
     if (error) { setUploading(false); alert('Erreur upload'); return }
     const { data: urlData } = supabase.storage.from('grands-jeux').getPublicUrl(filename)
     await supabase.from('grands_jeux').insert([{ titre, type: fileType, url: urlData.publicUrl }])
+    await supabase.from('notifications').insert([{ titre: `🎪 Grand jeu ajouté`, message: titre, type: 'info', lue: false }])
     setUploading(false)
     setShowForm(false)
     setTitre('')

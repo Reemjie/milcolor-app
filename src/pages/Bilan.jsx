@@ -69,6 +69,7 @@ export default function Bilan() {
       await supabase.from('bilans').update(form).eq('id', id)
     } else {
       await supabase.from('bilans').insert([form])
+    await supabase.from('notifications').insert([{ titre: `📋 Bilan — ${form.prenom} ${form.nom}`, message: `Bilan du ${form.jour} soumis`, type: 'info', lue: false }])
     }
     setSaving(false)
     navigate('/chat')

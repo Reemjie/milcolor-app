@@ -65,6 +65,7 @@ export default function InfosJour() {
         auteur: impForm.auteur || null,
         jour: today,
       }])
+      await supabase.from('notifications').insert([{ titre: `🖨️ À imprimer${impForm.auteur ? ' — ' + impForm.auteur : ''}`, message: `${impForm.nom} (${impForm.taille} x${impForm.quantite})`, type: 'info', lue: false }])
     }
     setUploading(false)
     setShowImpForm(false)
@@ -89,6 +90,7 @@ export default function InfosJour() {
     if (!form.contenu.trim()) return
     setSaving(true)
     if (form.auteur) sessionStorage.setItem('chat_auteur', form.auteur)
+    const typeLabel = { entretien: '📅 Entretien', depart: '🚪 Départ anticipé', info_parent: '💬 Info parent', todo: '✅ À faire' }[formType] || formType
     await supabase.from('infos_jour').insert([{
       type: formType,
       contenu: form.contenu.trim(),
@@ -96,6 +98,7 @@ export default function InfosJour() {
       jour: today,
       fait: false,
     }])
+    await supabase.from('notifications').insert([{ titre: `${typeLabel}${form.auteur ? ' — ' + form.auteur.trim() : ''}`, message: form.contenu.trim().slice(0, 100), type: 'info', lue: false }])
     setSaving(false)
     setShowForm(false)
     setForm({ contenu: '', auteur: sessionStorage.getItem('chat_auteur') || '' })
