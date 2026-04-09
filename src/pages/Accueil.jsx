@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 export default function Accueil() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
-  const [alertes, setAlertes] = useState([])
+  const [alertesMateriel, setAlertesMateriel] = useState([])
 
   useEffect(() => {
     async function fetchAlertes() {
@@ -28,7 +28,7 @@ export default function Accueil() {
 
   useEffect(() => {
     fetchNotifs()
-    fetchAlertes()
+    fetchAlertesMateriel()
     if (isAdmin) fetchBilans()
   }, [isAdmin])
 
@@ -57,7 +57,7 @@ export default function Accueil() {
     setNotifs(data || [])
   }
 
-  async function fetchAlertes() {
+  async function fetchAlertesMateriel() {
     const { data } = await supabase.from('materiel').select('*').eq('statut', 'alerte').order('created_at', { ascending: false }).limit(2)
     setAlertes(data || [])
   }
@@ -84,10 +84,38 @@ export default function Accueil() {
         <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2, textTransform: 'capitalize' }}>{dateStr}</p>
       </div>
 
-      {/* Alertes urgentes */}
+
+      {/* Alertes chat urgent + notifs */}
       {alertes.length > 0 && (
+        <div style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span style={{ fontSize: '1.1rem' }}>🚨</span>
+            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#CC3333' }}>Alertes</span>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {alertes.map(a => (
+              <div key={a.id} style={{ background: '#FFE8E8', border: '1.5px solid #FF6B6B', borderRadius: 12, padding: '12px 14px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{a._type === 'notif' ? '🔔' : '🚨'}</span>
+                  <div style={{ flex: 1 }}>
+                    {a._type === 'notif' && <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#CC3333', marginBottom: 2 }}>{a.titre}</div>}
+                    <p style={{ fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.4 }}>{a._type === 'notif' ? a.message : a.contenu}</p>
+                    <div style={{ fontSize: '0.7rem', color: 'var(--text2)', marginTop: 4 }}>
+                      {a._type === 'chat' && a.auteur && <span>👤 {a.auteur} · </span>}
+                      {new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Alertes urgentes matériel */}
+      {alertesMateriel.length > 0 && (
         <div style={{ marginBottom: 20 }}>
-          {alertes.map(a => (
+          {alertesMateriel.map(a => (
             <div key={a.id} onClick={() => navigate('/materiel')} style={{
               background: '#FFF3E0', border: '2px solid #FF9F43',
               borderRadius: 14, padding: '12px 16px', marginBottom: 8,
@@ -270,31 +298,7 @@ export default function Accueil() {
           </div>
         </button>
 
-        {alertes.length > 0 && (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: '1.1rem' }}>🚨</span>
-            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#CC3333' }}>Alertes</span>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {alertes.map(a => (
-              <div key={a.id} style={{ background: '#FFE8E8', border: '1.5px solid #FF6B6B', borderRadius: 12, padding: '12px 14px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{a._type === 'notif' ? '🔔' : '🚨'}</span>
-                  <div style={{ flex: 1 }}>
-                    {a._type === 'notif' && <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#CC3333', marginBottom: 2 }}>{a.titre}</div>}
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.4 }}>{a._type === 'notif' ? a.message : a.contenu}</p>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text2)', marginTop: 4 }}>
-                      {a._type === 'chat' && a.auteur && <span>👤 {a.auteur} · </span>}
-                      {new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+
 
 
       </div>
