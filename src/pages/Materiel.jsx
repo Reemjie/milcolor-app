@@ -39,7 +39,7 @@ export default function Materiel() {
     if (!form.nom || !form.signale_par) return
     setSaving(true)
     await supabase.from('materiel').insert([form])
-    await supabase.from('notifications').insert([{ titre: `🔧 Signalement matériel — ${form.nom}`, message: form.description || form.statut, type: 'info', lue: false }])
+    await supabase.from('notifications').insert([{ titre: `🔧 Signalement matériel — ${form.nom}`, message: form.description || form.statut, type: 'info', lue: false, lien: '/materiel' }])
     setSaving(false)
     setShowForm(false)
     setForm({ nom: '', description: '', statut: 'alerte', signale_par: '' })

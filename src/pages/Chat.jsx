@@ -53,7 +53,7 @@ export default function Chat() {
     sessionStorage.setItem('chat_auteur', auteur)
     await supabase.from('remarques').insert([{ auteur: auteur.trim(), contenu: texte.trim(), categorie: cat, date_journee: new Date().toISOString().slice(0, 10) }])
     const catLabel = cat === 'urgent' ? '🚨 Urgent' : cat === 'bilan' ? '📊 Bilan' : cat === 'idee' ? '💡 Idée' : '💬 Général'
-    await supabase.from('notifications').insert([{ titre: `${catLabel} — ${auteur.trim()}`, message: texte.trim().slice(0, 100), type: 'info', lue: false }])
+    await supabase.from('notifications').insert([{ titre: `${catLabel} — ${auteur.trim()}`, message: texte.trim().slice(0, 100), type: 'info', lue: false, lien: '/chat' }])
     setTexte('')
     setSending(false)
     fetchMessages()

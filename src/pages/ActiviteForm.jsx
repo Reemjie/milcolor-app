@@ -65,7 +65,7 @@ export default function ActiviteForm() {
     const payload = { nom: form.nom.trim(), animateur: form.animateur.trim(), type: form.type, age: form.age, materiel: form.materiel, regles: form.regles, commentaires: form.commentaires, photo_url: form.photo_url || null, session_active: form.session_active }
     if (isEdit) { await supabase.from('activites').update(payload).eq('id', id) }
     else { await supabase.from('activites').insert([payload])
-      await supabase.from('notifications').insert([{ titre: `🎨 Nouvelle activité — ${payload.nom}`, message: `Ajoutée par ${payload.animateur || 'un animateur'}`, type: 'info', lue: false }])
+      await supabase.from('notifications').insert([{ titre: `🎨 Nouvelle activité — ${payload.nom}`, message: `Ajoutée par ${payload.animateur || 'un animateur'}`, type: 'info', lue: false, lien: '/session' }])
     }
     setSaving(false)
     navigate(-1)

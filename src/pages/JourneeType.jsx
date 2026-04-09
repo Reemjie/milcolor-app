@@ -239,7 +239,7 @@ export function Objectifs() {
       }
       if (url) {
         await supabase.from('objectifs_fichiers').insert([{ url, nom: file.name }])
-        await supabase.from('notifications').insert([{ titre: '🎯 Objectifs mis à jour', message: `Fichier ajouté : ${file.name}`, type: 'info', lue: false }])
+        await supabase.from('notifications').insert([{ titre: '🎯 Objectifs mis à jour', message: `Fichier ajouté : ${file.name}`, type: 'info', lue: false, lien: '/objectifs' }])
       }
     }
     setUploading(false)

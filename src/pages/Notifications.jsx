@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 
 export default function Notifications() {
+  const navigate = useNavigate()
   const { isAdmin } = useAuth()
   const [notifs, setNotifs] = useState([])
   const [loading, setLoading] = useState(true)
@@ -70,7 +72,7 @@ export default function Notifications() {
         {notifs.map(n => {
           const t = TYPES[n.type] || TYPES.info
           return (
-            <div key={n.id} style={{ background: n.lue ? 'white' : t.bg, border: `2px solid ${n.lue ? 'var(--border)' : t.color}`, borderRadius: 14, padding: '14px 16px' }}>
+            <div key={n.id} onClick={() => n.lien && navigate(n.lien)} style={{ background: n.lue ? 'white' : t.bg, border: `2px solid ${n.lue ? 'var(--border)' : t.color}`, borderRadius: 14, padding: '14px 16px', cursor: n.lien ? 'pointer' : 'default' }}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                 <div style={{ display: 'flex', gap: 10, flex: 1 }}>
                   <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{t.icon}</span>
