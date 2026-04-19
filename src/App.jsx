@@ -21,6 +21,7 @@ import InfosJour from './pages/InfosJour'
 import EvaluationBafa from './pages/EvaluationBafa'
 import LiensUtiles from './pages/LiensUtiles'
 import Sorties from './pages/Sorties'
+import InfosSorties from './pages/InfosSorties'
 import EvaluationsList from './pages/EvaluationsList'
 import Bilan from './pages/Bilan'
 import ListeMateriel from './pages/ListeMateriel'
@@ -59,6 +60,7 @@ export default function App() {
         <Route path="evaluations-bafa/:id" element={<EvaluationBafa />} />
         <Route path="liens-utiles" element={<LiensUtiles />} />
         <Route path="sorties" element={<Sorties />} />
+        <Route path="infos-sorties" element={<InfosSorties />} />
         <Route path="bilans" element={<BilansList />} />
         <Route path="bilans/nouveau" element={<Bilan />} />
         <Route path="bilans/:id" element={<Bilan />} />
