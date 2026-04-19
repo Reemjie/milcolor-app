@@ -99,6 +99,18 @@ export default function Plannings() {
         {isAdmin && <button className="btn btn-primary" onClick={openNew}>+ Semaine</button>}
       </div>
 
+      {/* Lien vers sorties prévues */}
+      <div style={{ marginBottom: 16 }}>
+        <button onClick={() => window.location.hash = '/infos-sorties'} style={{ width: '100%', padding: '12px 16px', borderRadius: 12, background: '#E8F4FF', border: '1.5px solid #118AB2', display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
+          <span style={{ fontSize: '1.3rem' }}>🗺️</span>
+          <div style={{ textAlign: 'left' }}>
+            <div style={{ fontWeight: 700, color: '#118AB2', fontSize: '0.9rem' }}>Sorties prévues</div>
+            <div style={{ fontSize: '0.75rem', color: '#118AB2' }}>Voir le programme des sorties</div>
+          </div>
+          <span style={{ marginLeft: 'auto', color: '#118AB2', fontWeight: 700 }}>→</span>
+        </button>
+      </div>
+
       {loading && <div className="spinner" />}
 
       {!loading && semaines.length === 0 && (
