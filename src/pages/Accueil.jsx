@@ -70,7 +70,6 @@ export default function Accueil() {
 
   const quickActions = [
     { icon: '📅', label: 'Planning\nsemaine',   to: '/plannings',    color: '#06D6A0', bg: '#E0FBF1' },
-    { icon: '🗺️', label: 'Sorties\nprévues',     to: '/infos-sorties', color: '#118AB2', bg: '#E8F4FF' },
     { icon: '🎨', label: 'Animations',           to: '/session',      color: '#9B5DE5', bg: '#f0edf8' },
     { icon: '🎯', label: 'Objectifs\nsession',  to: '/objectifs',    color: '#CC6600', bg: '#FFF3E0' },
     { icon: '🎪', label: 'Grands\njeux',            to: '/grands-jeux',  color: '#9B5DE5', bg: '#f0edf8' },
