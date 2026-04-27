@@ -93,7 +93,14 @@ export default function SessionEnCours() {
           <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>{filtered.length} activité{filtered.length > 1 ? 's' : ''} cette session</p>
         </div>
         {isAdmin && <button onClick={() => navigate('/materiel-session')} style={{ background: '#E0FBF1', border: '1.5px solid #06D6A0', borderRadius: 10, padding: '8px 14px', fontWeight: 700, fontSize: '0.82rem', color: '#0A7A5A' }}>📦 Matériel</button>}
-        <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={() => { setSelectMode(!selectMode); setSelected({}) }} style={{ padding: '8px 12px', borderRadius: 10, background: selectMode ? '#f0edf8' : 'var(--bg)', border: `1.5px solid ${selectMode ? '#9B5DE5' : 'var(--border)'}`, fontWeight: 700, fontSize: '0.8rem', color: selectMode ? '#9B5DE5' : 'var(--text2)' }}>
+              {selectMode ? '✕ Annuler' : '☑ Sélectionner'}
+            </button>
+            <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
+          </div>
+        )}
       </div>
 
       {/* Barre actions sélection */}
