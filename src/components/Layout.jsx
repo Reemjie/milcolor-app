@@ -7,7 +7,7 @@ const NAV = [
   { to: '/accueil',   icon: '🏠', label: 'Accueil'   },
   { to: '/infos-jour', icon: '📋', label: 'Infos jour' },
   { to: '/documents', icon: '📁', label: 'Documents' },
-  { to: '/chat',      icon: '💬', label: 'Chat'      },
+  { to: '/chat',      icon: '💬', label: 'Alertes'   },
 ]
 
 export default function Layout() {

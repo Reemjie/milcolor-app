@@ -3,10 +3,9 @@ import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 
 const CATS = [
-  { id: 'general', label: '💬 Général', color: '#118AB2', bg: '#E8F4FF' },
-  { id: 'bilan', label: '📊 Bilan', color: '#06D6A0', bg: '#E0FBF1' },
-  { id: 'urgent', label: '🚨 Urgent', color: '#FF4444', bg: '#FFE8E8' },
+  { id: 'urgent', label: '🚨 Alerte', color: '#FF4444', bg: '#FFE8E8' },
   { id: 'idee', label: '💡 Idée', color: '#FF9F43', bg: '#FFF3E0' },
+  { id: 'aprovoir', label: '📅 À prévoir', color: '#9B5DE5', bg: '#f0edf8' },
 ]
 
 function timeAgo(d) {
@@ -26,7 +25,7 @@ export default function Chat() {
   const [auteur, setAuteur] = useState(sessionStorage.getItem('chat_auteur') || '')
   const [texte, setTexte] = useState('')
   const [cat, setCat] = useState('general')
-  const [showAuteur, setShowAuteur] = useState(!sessionStorage.getItem('chat_auteur'))
+  const [showAuteur, setShowAuteur] = useState(false)
   const [sending, setSending] = useState(false)
   const bottomRef = useRef(null)
 
@@ -85,7 +84,7 @@ export default function Chat() {
       <div style={{ padding: '16px 16px 8px', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h1 style={{ fontSize: '1.4rem' }}>💬 Chat & remarques</h1>
+            <h1 style={{ fontSize: '1.4rem' }}>💬 Alertes & idées</h1>
             <button onClick={() => setShowAuteur(true)} style={{ background: 'none', border: 'none', fontSize: '0.75rem', color: 'var(--text2)', padding: 0, cursor: 'pointer' }}>
               👤 {auteur} · changer
             </button>
