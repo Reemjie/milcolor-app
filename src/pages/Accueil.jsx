@@ -34,7 +34,7 @@ export default function Accueil() {
   }, [isAdmin])
 
   async function fetchBilans() {
-    const { data } = await supabase.from('bilans').select('*').order('jour', { ascending: false }).order('created_at', { ascending: false }).limit(20)
+    const { data } = await supabase.from('bilans').select('*').order('jour', { ascending: false }).order('created_at', { ascending: false }).limit(50)
     setBilans(data || [])
   }
 
