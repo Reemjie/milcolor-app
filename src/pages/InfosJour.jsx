@@ -230,9 +230,9 @@ export default function InfosJour() {
       </div>
 
       <div style={{ padding: '10px 12px 12px', background: 'white', borderTop: '1px solid var(--border)', flexShrink: 0 }}>
-        <div style={{ display: 'grid', gridTemplateColumns: isAdmin ? 'repeat(6,1fr)' : 'repeat(5,1fr)', gap: 8 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8 }}>
           <button onClick={() => navigate('/sorties')} style={{ padding: '10px 6px', borderRadius: 12, border: '2px solid #FF6B6B', background: '#FFE8E8', color: '#CC3333', fontWeight: 700, fontSize: '0.72rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '1.2rem', marginBottom: 2 }}>🚶</div>Sorties
+            <div style={{ fontSize: '1.2rem', marginBottom: 2 }}>🚶</div>Je sors avec un groupe
           </button>
           <button onClick={() => { setShowImpForm(true); setActiveType('impression') }} style={{ padding: '10px 6px', borderRadius: 12, border: '2px solid #C084FC', background: '#f0edf8', color: '#9B5DE5', fontWeight: 700, fontSize: '0.72rem', textAlign: 'center' }}>
             <div style={{ fontSize: '1.2rem', marginBottom: 2 }}>🖨️</div>À imprimer
