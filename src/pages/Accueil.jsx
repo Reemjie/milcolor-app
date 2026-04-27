@@ -211,6 +211,9 @@ export default function Accueil() {
               ))}
             </div>
           )}
+          <button onClick={() => navigate('/bilans')} style={{ width: '100%', padding: '10px', borderRadius: 10, background: 'var(--bg)', border: '1.5px solid var(--border)', fontWeight: 700, fontSize: '0.82rem', color: 'var(--text2)', marginTop: 8 }}>
+            📋 Voir tous les bilans →
+          </button>
         </div>
       )}
 
