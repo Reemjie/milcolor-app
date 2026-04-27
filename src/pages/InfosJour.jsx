@@ -39,7 +39,9 @@ export default function InfosJour() {
 
   async function fetchItems() {
     setLoading(true)
-    const { data } = await supabase.from('infos_jour').select('*').eq('jour', today).order('created_at', { ascending: true })
+    const { data: entretiens } = await supabase.from('infos_jour').select('*').eq('type', 'entretien').order('created_at', { ascending: true })
+    const { data: autres } = await supabase.from('infos_jour').select('*').neq('type', 'entretien').eq('jour', today).order('created_at', { ascending: true })
+    const data = [...(entretiens || []), ...(autres || [])]
     setItems(data || [])
     setLoading(false)
   }
