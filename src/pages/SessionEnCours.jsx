@@ -20,6 +20,8 @@ export default function SessionEnCours() {
   const [filterType, setFilterType] = useState('all')
   const [filterAnim, setFilterAnim] = useState('all')
   const [search, setSearch] = useState('')
+  const [selected, setSelected] = useState({})
+  const [selectMode, setSelectMode] = useState(false)
   const [actionId, setActionId] = useState(null)
 
   useEffect(() => { fetchActivites() }, [])
@@ -29,6 +31,35 @@ export default function SessionEnCours() {
     const { data } = await supabase.from('activites').select('*').eq('session_active', true).order('created_at', { ascending: false })
     setActivites(data || [])
     setLoading(false)
+  }
+
+  function toggleSelect(id) {
+    setSelected(s => ({ ...s, [id]: !s[id] }))
+  }
+
+  function selectAll() {
+    const allSelected = filtered.every(i => selected[i.id])
+    if (allSelected) setSelected({})
+    else {
+      const next = {}
+      filtered.forEach(i => { next[i.id] = true })
+      setSelected(next)
+    }
+  }
+
+  async function archiverSelected() {
+    const ids = Object.keys(selected).filter(id => selected[id])
+    for (const id of ids) await archiver(id)
+    setSelected({})
+    setSelectMode(false)
+  }
+
+  async function supprimerSelected() {
+    if (!confirm(`Supprimer ${Object.values(selected).filter(Boolean).length} activité(s) ?`)) return
+    const ids = Object.keys(selected).filter(id => selected[id])
+    for (const id of ids) await supprimer(id)
+    setSelected({})
+    setSelectMode(false)
   }
 
   async function archiver(id) {
@@ -64,6 +95,21 @@ export default function SessionEnCours() {
         {isAdmin && <button onClick={() => navigate('/materiel-session')} style={{ background: '#E0FBF1', border: '1.5px solid #06D6A0', borderRadius: 10, padding: '8px 14px', fontWeight: 700, fontSize: '0.82rem', color: '#0A7A5A' }}>📦 Matériel</button>}
         <button className="btn btn-primary" onClick={() => navigate('/banque/nouvelle')}>+ Ajouter</button>
       </div>
+
+      {/* Barre actions sélection */}
+      {isAdmin && selectMode && Object.values(selected).some(Boolean) && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 10, padding: '10px 12px', background: '#f0edf8', borderRadius: 12 }}>
+          <button onClick={selectAll} style={{ flex: 1, padding: '8px', borderRadius: 8, background: 'white', border: '1.5px solid var(--border)', fontWeight: 700, fontSize: '0.78rem' }}>
+            {filtered.every(i => selected[i.id]) ? '☐ Tout désélectionner' : '☑ Tout sélectionner'}
+          </button>
+          <button onClick={archiverSelected} style={{ padding: '8px 12px', borderRadius: 8, background: '#E0FBF1', border: '1.5px solid #06D6A0', color: '#0A7A5A', fontWeight: 700, fontSize: '0.78rem' }}>
+            🗂 Archiver ({Object.values(selected).filter(Boolean).length})
+          </button>
+          <button onClick={supprimerSelected} style={{ padding: '8px 12px', borderRadius: 8, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.78rem' }}>
+            🗑 Supprimer ({Object.values(selected).filter(Boolean).length})
+          </button>
+        </div>
+      )}
 
       {/* Recherche */}
       <div style={{ position: 'relative', marginBottom: 10 }}>
@@ -158,7 +204,7 @@ export default function SessionEnCours() {
           const tc = TYPE_COLORS[a.type] || { bg: '#f5f5f5', color: '#666' }
           const isOpen = actionId === a.id
           return (
-            <div key={a.id} className="card" style={{ overflow: 'hidden' }}>
+            <div key={a.id} onClick={() => selectMode && toggleSelect(a.id)} className="card" style={{ overflow: 'hidden' }}>
               {/* Fiche */}
               <div style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => navigate(`/banque/${a.id}`)}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
