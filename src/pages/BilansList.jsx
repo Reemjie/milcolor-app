@@ -8,6 +8,7 @@ export default function BilansList() {
   const navigate = useNavigate()
   const [bilans, setBilans] = useState([])
   const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState('bilans')
 
   useEffect(() => { fetchBilans() }, [])
 
@@ -41,9 +42,49 @@ export default function BilansList() {
         <button className="btn btn-primary" onClick={() => navigate('/bilans/nouveau')}>+ Bilan</button>
       </div>
 
-      {loading && <div className="spinner" />}
+      {/* Onglets directeur */}
+      {isAdmin && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
+          <button onClick={() => setActiveTab('bilans')} style={{ flex: 1, padding: '10px', borderRadius: 10, border: `2px solid ${activeTab === 'bilans' ? '#118AB2' : 'var(--border)'}`, background: activeTab === 'bilans' ? '#E8F4FF' : 'white', fontWeight: 700, fontSize: '0.85rem', color: activeTab === 'bilans' ? '#118AB2' : 'var(--text2)' }}>
+            📋 Bilans
+          </button>
+          <button onClick={() => setActiveTab('notes')} style={{ flex: 1, padding: '10px', borderRadius: 10, border: `2px solid ${activeTab === 'notes' ? '#9B5DE5' : 'var(--border)'}`, background: activeTab === 'notes' ? '#f0edf8' : 'white', fontWeight: 700, fontSize: '0.85rem', color: activeTab === 'notes' ? '#9B5DE5' : 'var(--text2)' }}>
+            📝 À aborder en réunion
+          </button>
+        </div>
+      )}
 
-      {!loading && bilans.length === 0 && (
+      {/* Onglet notes directeur */}
+      {isAdmin && activeTab === 'notes' && !loading && (
+        <div>
+          {bilans.filter(b => b.notes_directeur && b.notes_directeur.trim()).length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--text2)' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: 10 }}>📝</div>
+              <p style={{ fontWeight: 700 }}>Aucune note pour l'instant</p>
+              <p style={{ fontSize: '0.85rem', marginTop: 4 }}>Tes notes sur les bilans apparaîtront ici</p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {bilans.filter(b => b.notes_directeur && b.notes_directeur.trim()).map(b => (
+                <div key={b.id} style={{ background: '#f0edf8', border: '1.5px solid #C084FC', borderRadius: 14, padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontWeight: 700, fontSize: '0.85rem', color: '#9B5DE5' }}>👤 {b.prenom} {b.nom}</span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text2)', marginLeft: 'auto' }}>{new Date(b.jour).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                  </div>
+                  <p style={{ fontSize: '0.88rem', lineHeight: 1.5, color: 'var(--text)', whiteSpace: 'pre-wrap' }}>{b.notes_directeur}</p>
+                  <button onClick={() => navigate(`/bilans/${b.id}`)} style={{ marginTop: 8, padding: '6px 12px', borderRadius: 8, background: '#9B5DE5', color: 'white', border: 'none', fontWeight: 700, fontSize: '0.78rem' }}>
+                    Voir le bilan →
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'bilans' && loading && <div className="spinner" />}
+      {activeTab === 'notes' && loading && <div className="spinner" />}
+      {activeTab === 'bilans' && !loading && bilans.length === 0 && (
         <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--text2)' }}>
           <div style={{ fontSize: '3rem', marginBottom: 12 }}>📋</div>
           <p style={{ fontWeight: 700 }}>Aucun bilan pour l'instant</p>
