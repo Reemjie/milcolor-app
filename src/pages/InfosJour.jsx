@@ -5,8 +5,6 @@ import { supabase } from '../lib/supabase'
 
 const TYPES = [
   { id: 'entretien', icon: '📅', label: 'Entretiens', color: '#9B5DE5', bg: '#f0edf8', border: '#C084FC', adminOnly: true },
-  { id: 'depart', icon: '🚪', label: 'Départs anticipés', color: '#CC6600', bg: '#FFF3E0', border: '#FF9F43', adminOnly: false },
-  { id: 'info_parent', icon: '💬', label: 'Infos parents', color: '#118AB2', bg: '#E8F4FF', border: '#74B9FF', adminOnly: false },
   { id: 'todo', icon: '✅', label: 'À faire', color: '#0A7A5A', bg: '#E0FBF1', border: '#06D6A0', adminOnly: false },
 ]
 
