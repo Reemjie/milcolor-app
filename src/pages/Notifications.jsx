@@ -56,7 +56,12 @@ export default function Notifications() {
           <h1 style={{ fontSize: '1.6rem' }}>🔔 Notifications</h1>
           <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>Messages du directeur</p>
         </div>
-        {isAdmin && <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Envoyer</button>}
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={async () => { if (!confirm('Supprimer toutes les notifications ?')) return; await supabase.from('notifications').delete().neq('id', '00000000-0000-0000-0000-000000000000'); fetchNotifs() }} style={{ padding: '8px 12px', borderRadius: 10, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.8rem' }}>🗑 Tout supprimer</button>
+            <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Envoyer</button>
+          </div>
+        )}
       </div>
 
       {loading && <div className="spinner" />}
