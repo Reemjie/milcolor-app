@@ -16,10 +16,15 @@ export default function BanqueAnimations() {
   const navigate = useNavigate()
   const [activites, setActivites] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filterType, setFilterType] = useState('all')
-  const [filterAge, setFilterAge] = useState('all')
-  const [filterAnim, setFilterAnim] = useState('all')
-  const [search, setSearch] = useState('')
+  const [filterType, setFilterType] = useState(sessionStorage.getItem('banque_type') || 'all')
+  const [filterAge, setFilterAge] = useState(sessionStorage.getItem('banque_age') || 'all')
+  const [filterAnim, setFilterAnim] = useState(sessionStorage.getItem('banque_anim') || 'all')
+  const [search, setSearch] = useState(sessionStorage.getItem('banque_search') || '')
+
+  useEffect(() => { sessionStorage.setItem('banque_type', filterType) }, [filterType])
+  useEffect(() => { sessionStorage.setItem('banque_age', filterAge) }, [filterAge])
+  useEffect(() => { sessionStorage.setItem('banque_anim', filterAnim) }, [filterAnim])
+  useEffect(() => { sessionStorage.setItem('banque_search', search) }, [search])
 
   useEffect(() => { fetchActivites() }, [])
 
