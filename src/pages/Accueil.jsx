@@ -75,6 +75,7 @@ export default function Accueil() {
     { icon: '🎪', label: 'Grands\njeux',            to: '/grands-jeux',  color: '#9B5DE5', bg: '#f0edf8' },
     { icon: '📋', label: 'Bilans\njournée',      to: '/bilans',       color: '#118AB2', bg: '#E8F4FF' },
     { icon: '👶', label: 'Infos\nenfants',      to: '/infos-enfants', color: '#FF6B9D', bg: '#FBEAF0' },
+    { icon: '🗓', label: 'Les\nmercredis',      to: '/mercredis',    color: '#E8825A', bg: '#FDF0E9' },
   ]
 
   return (

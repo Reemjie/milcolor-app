@@ -26,6 +26,8 @@ import EvaluationsList from './pages/EvaluationsList'
 import Bilan from './pages/Bilan'
 import ListeMateriel from './pages/ListeMateriel'
 import BilansList from './pages/BilansList'
+import Mercredis from './pages/Mercredis'
+import MercrediPlanning from './pages/MercrediPlanning'
 
 function ProtectedRoute({ children }) {
   const { isLoggedIn } = useAuth()
@@ -65,6 +67,8 @@ export default function App() {
         <Route path="bilans/nouveau" element={<Bilan />} />
         <Route path="bilans/:id" element={<Bilan />} />
         <Route path="materiel-session" element={<ListeMateriel />} />
+        <Route path="mercredis" element={<Mercredis />} />
+        <Route path="mercredis/:date" element={<MercrediPlanning />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
