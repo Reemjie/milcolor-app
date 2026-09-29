@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import EffectifsPrevus from '../components/EffectifsPrevus'
 
 const TYPES = [
   { id: 'allergie', icon: '🚨', label: 'Allergie', color: '#CC3333', bg: '#FFE8E8', border: '#FF6B6B' },
@@ -99,6 +100,8 @@ export default function InfosEnfants() {
           ))}
         </div>
       </div>
+
+      <EffectifsPrevus />
 
       {/* Filtres */}
       <div style={{ display: 'flex', gap: 6, overflowX: 'auto', paddingBottom: 4, marginBottom: 16 }}>
