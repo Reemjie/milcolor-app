@@ -1,6 +1,6 @@
 const APP_ID = '62327bb6-58fb-41e4-9738-ace048ea1134'
 const DISMISS_KEY = 'milcolor_push_dismissed_at'
-const DISMISS_MS = 12 * 60 * 60 * 1000 // 12h
+const DISMISS_MS = 12 * 60 * 60 * 1000
 
 function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms))
@@ -9,7 +9,7 @@ function sleep(ms) {
 /** Attend que le SDK OneSignal (chargé dans index.html) soit prêt. */
 export function whenOneSignalReady() {
   return new Promise((resolve) => {
-    if (window.OneSignal?.User) {
+    if (window.OneSignal?.Notifications) {
       resolve(window.OneSignal)
       return
     }
@@ -21,9 +21,15 @@ export function whenOneSignalReady() {
 }
 
 export async function isPushSupported() {
-  const OneSignal = await whenOneSignalReady()
   try {
-    return !!OneSignal?.Notifications?.isPushSupported?.()
+    if (typeof window === 'undefined') return false
+    if (!('Notification' in window)) return false
+    if (!('serviceWorker' in navigator)) return false
+    const OneSignal = await whenOneSignalReady()
+    if (typeof OneSignal?.Notifications?.isPushSupported === 'function') {
+      return !!OneSignal.Notifications.isPushSupported()
+    }
+    return true
   } catch {
     return false
   }
@@ -31,20 +37,19 @@ export async function isPushSupported() {
 
 export async function getPushStatus() {
   const OneSignal = await whenOneSignalReady()
-  const supported = !!OneSignal?.Notifications?.isPushSupported?.()
-  const permission = OneSignal?.Notifications?.permissionNative
-    || (typeof Notification !== 'undefined' ? Notification.permission : 'default')
+  const supported = await isPushSupported()
+  const permission = (typeof Notification !== 'undefined' ? Notification.permission : 'default')
+  const permissionNative = OneSignal?.Notifications?.permissionNative || permission
   const optedIn = !!OneSignal?.User?.PushSubscription?.optedIn
   const id = OneSignal?.User?.PushSubscription?.id || null
   const token = OneSignal?.User?.PushSubscription?.token || null
   return {
     supported,
-    permission,
+    permission: permissionNative || permission,
     optedIn,
     id,
     token,
-    // Un vrai abonnement OneSignal = un id de subscription
-    subscribed: supported && permission === 'granted' && !!id,
+    subscribed: !!(id && (permission === 'granted' || permissionNative === 'granted')),
     appId: APP_ID,
   }
 }
@@ -63,52 +68,51 @@ export function dismissPushPrompt() {
   try { localStorage.setItem(DISMISS_KEY, String(Date.now())) } catch { /* ignore */ }
 }
 
-export function resetPushPromptDismiss() {
-  try { localStorage.removeItem(DISMISS_KEY) } catch { /* ignore */ }
-}
-
-/** Demande l’autorisation push. À appeler depuis un clic utilisateur. */
+/**
+ * Active le push. DOIT être appelé directement depuis un click
+ * (pas d'await long avant requestPermission — sinon Chrome bloque).
+ */
 export async function enablePushNotifications() {
-  const OneSignal = await whenOneSignalReady()
-  if (!OneSignal?.Notifications?.isPushSupported?.()) {
-    return { ok: false, reason: 'unsupported' }
-  }
-
-  try {
-    // Slidedown soft prompt (peut être no-op si déjà vu)
-    if (OneSignal.Slidedown?.promptPush) {
-      await OneSignal.Slidedown.promptPush({ force: true })
+  // 1) Permission native IMMÉDIATEMENT (geste utilisateur)
+  let permission = typeof Notification !== 'undefined' ? Notification.permission : 'default'
+  if (permission === 'default') {
+    try {
+      permission = await Notification.requestPermission()
+    } catch (e) {
+      console.warn('Notification.requestPermission', e)
     }
-  } catch (e) {
-    console.warn('OneSignal slidedown', e)
+  }
+  if (permission === 'denied') {
+    return { ok: false, reason: 'denied', status: await getPushStatus() }
+  }
+  if (permission !== 'granted') {
+    return { ok: false, reason: 'pending', status: await getPushStatus() }
   }
 
+  // 2) OneSignal opt-in / enregistrement player
+  const OneSignal = await whenOneSignalReady()
   try {
-    // Prompt natif navigateur
-    if (OneSignal.Notifications?.requestPermission) {
+    if (OneSignal?.Notifications?.requestPermission) {
       await OneSignal.Notifications.requestPermission(true)
     }
   } catch (e) {
-    console.warn('OneSignal requestPermission', e)
+    console.warn('OneSignal.requestPermission', e)
   }
 
   try {
-    await OneSignal.User?.PushSubscription?.optIn?.()
+    await OneSignal?.User?.PushSubscription?.optIn?.()
   } catch (e) {
-    console.warn('OneSignal optIn', e)
+    console.warn('OneSignal.optIn', e)
   }
 
-  // Attendre que OneSignal enregistre le player (sinon id reste null)
-  for (let i = 0; i < 12; i++) {
+  // 3) Attendre l'id OneSignal
+  for (let i = 0; i < 20; i++) {
     const status = await getPushStatus()
     if (status.subscribed) {
       try { localStorage.removeItem(DISMISS_KEY) } catch { /* ignore */ }
       return { ok: true, status }
     }
-    if (status.permission === 'denied') {
-      return { ok: false, reason: 'denied', status }
-    }
-    await sleep(400)
+    await sleep(300)
   }
 
   const status = await getPushStatus()

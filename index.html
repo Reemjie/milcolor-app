@@ -18,10 +18,11 @@
     OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
         appId: "62327bb6-58fb-41e4-9738-ace048ea1134",
-        serviceWorkerPath: "/milcolor-app/OneSignalSDKWorker.js",
-        serviceWorkerUpdaterPath: "/milcolor-app/OneSignalSDKUpdaterWorker.js",
+        serviceWorkerPath: "OneSignalSDKWorker.js",
+        serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
         serviceWorkerParam: { scope: "/milcolor-app/" },
         allowLocalhostAsSecureOrigin: true,
+        // Pas d'auto-prompt : on gère via le bouton Activer (geste utilisateur)
         promptOptions: {
           slidedown: {
             prompts: [{

@@ -55,10 +55,10 @@ export default function PushPrompt() {
       return
     }
     if (result.reason === 'no_player') {
-      setHint('Permission OK mais OneSignal n’a pas enregistré l’appareil. Ferme tous les onglets Milcolor, rouvre, puis réessaie.')
+      setHint('Permission OK, mais l’enregistrement OneSignal a échoué. Essaie en Chrome/Safari (pas un aperçu intégré), ou ajoute l’app à l’écran d’accueil sur iPhone.')
       return
     }
-    setHint('Pas encore activé. Réessaie après avoir accepté la popup du navigateur.')
+    setHint(`Pas encore activé (permission: ${result.status?.permission || '?'}). Accepte bien « Autoriser » sur la popup système, pas seulement le bandeau.`)
   }
 
   function onLater() {
