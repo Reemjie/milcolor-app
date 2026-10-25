@@ -11,6 +11,7 @@ export default function PushPrompt() {
   const [visible, setVisible] = useState(false)
   const [busy, setBusy] = useState(false)
   const [hint, setHint] = useState('')
+  const [okMsg, setOkMsg] = useState('')
 
   useEffect(() => {
     let cancelled = false
@@ -19,8 +20,13 @@ export default function PushPrompt() {
       if (!supported || cancelled) return
       const status = await getPushStatus()
       if (cancelled) return
+      // Seulement si OneSignal a bien un subscription id
       if (status.subscribed) return
-      if (status.permission === 'denied') return
+      if (status.permission === 'denied') {
+        setHint('Notifications bloquées par le navigateur. Autorise-les pour reemjie.github.io dans les réglages.')
+        setVisible(true)
+        return
+      }
       if (wasPushPromptDismissed()) return
       setVisible(true)
     })()
@@ -32,21 +38,27 @@ export default function PushPrompt() {
   async function onEnable() {
     setBusy(true)
     setHint('')
+    setOkMsg('')
     const result = await enablePushNotifications()
     setBusy(false)
     if (result.ok) {
-      setVisible(false)
+      setOkMsg(`Activé ✓ (${String(result.status?.id || '').slice(0, 8)}…)`)
+      setTimeout(() => setVisible(false), 1500)
       return
     }
     if (result.reason === 'denied') {
-      setHint('Autorisation refusée. Réactive les notifs dans les réglages du navigateur / de l’app.')
+      setHint('Autorisation refusée. Réactive les notifs pour reemjie.github.io dans les réglages du navigateur.')
       return
     }
     if (result.reason === 'unsupported') {
-      setHint('Sur iPhone : ajoute d’abord Milcolor à l’écran d’accueil (Safari → Partager), puis réessaie.')
+      setHint('Sur iPhone : Safari → Partager → Sur l’écran d’accueil, puis rouvre l’icône Milcolor et réessaie.')
       return
     }
-    setHint('Pas encore activé. Réessaie ou vérifie les réglages de notification.')
+    if (result.reason === 'no_player') {
+      setHint('Permission OK mais OneSignal n’a pas enregistré l’appareil. Ferme tous les onglets Milcolor, rouvre, puis réessaie.')
+      return
+    }
+    setHint('Pas encore activé. Réessaie après avoir accepté la popup du navigateur.')
   }
 
   function onLater() {
@@ -77,6 +89,9 @@ export default function PushPrompt() {
           </p>
           {hint && (
             <p style={{ fontSize: '0.75rem', color: '#CC3333', marginTop: 6, lineHeight: 1.35 }}>{hint}</p>
+          )}
+          {okMsg && (
+            <p style={{ fontSize: '0.75rem', color: '#0A7A5A', marginTop: 6, lineHeight: 1.35 }}>{okMsg}</p>
           )}
         </div>
       </div>
