@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1'
 
-const APP_ID = Deno.env.get('ONESIGNAL_APP_ID') || '6f0e5885-7f27-4209-9ae3-c0d33504745f'
+const APP_ID = Deno.env.get('ONESIGNAL_APP_ID') || '62327bb6-58fb-41e4-9738-ace048ea1134'
 const REST_KEY = Deno.env.get('ONESIGNAL_REST_API_KEY') || ''
 const SITE = 'https://reemjie.github.io/milcolor-app/'
 
