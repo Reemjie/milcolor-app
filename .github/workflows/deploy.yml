@@ -31,9 +31,6 @@ jobs:
           VITE_ANIM_EMAIL: ${{ secrets.VITE_ANIM_EMAIL }}
           VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
 
-      - name: Copy OneSignal service worker
-        run: cp public/OneSignalSDK.sw.js dist/OneSignalSDK.sw.js
-
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
