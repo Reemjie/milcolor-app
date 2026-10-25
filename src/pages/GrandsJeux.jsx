@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 function resizeImage(file) {
   return new Promise(resolve => {
@@ -70,7 +71,7 @@ export default function GrandsJeux() {
     if (error) { setUploading(false); alert('Erreur upload'); return }
     const { data: urlData } = supabase.storage.from('grands-jeux').getPublicUrl(filename)
     await supabase.from('grands_jeux').insert([{ titre, type: fileType, url: urlData.publicUrl }])
-    await supabase.from('notifications').insert([{ titre: `🎪 Grand jeu ajouté`, message: titre, type: 'info', lue: false, lien: '/grands-jeux' }])
+    await notifyTeam({ titre: `🎪 Grand jeu ajouté`, message: titre, type: 'info', lien: '/grands-jeux' })
     setUploading(false)
     setShowForm(false)
     setTitre('')

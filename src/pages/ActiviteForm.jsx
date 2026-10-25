@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const TYPES = ['Jeux', 'Jeu de 11h', 'Activité manuelle', 'Temps calme']
 const AGES = ['3-5 ans', '6-11 ans']
@@ -65,7 +66,7 @@ export default function ActiviteForm() {
     const payload = { nom: form.nom.trim(), animateur: form.animateur.trim(), type: form.type, age: form.age, materiel: form.materiel, regles: form.regles, commentaires: form.commentaires, photo_url: form.photo_url || null, session_active: form.session_active }
     if (isEdit) { await supabase.from('activites').update(payload).eq('id', id) }
     else { await supabase.from('activites').insert([payload])
-      await supabase.from('notifications').insert([{ titre: `🎨 Nouvelle activité — ${payload.nom}`, message: `Ajoutée par ${payload.animateur || 'un animateur'}`, type: 'info', lue: false, lien: '/session' }])
+      await notifyTeam({ titre: `🎨 Nouvelle activité — ${payload.nom}`, message: `Ajoutée par ${payload.animateur || 'un animateur'}`, type: 'info', lien: '/session' })
     }
     setSaving(false)
     navigate(-1)

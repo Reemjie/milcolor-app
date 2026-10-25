@@ -2,6 +2,7 @@ import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
+import PushPrompt from './PushPrompt'
 
 const NAV = [
   { to: '/accueil',   icon: '🏠', label: 'Accueil'   },
@@ -78,6 +79,8 @@ export default function Layout() {
           </button>
         </div>
       </header>
+
+      <PushPrompt />
 
       {/* Page */}
       <main style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden', paddingBottom: 'calc(var(--nav-h) + var(--safe-bottom))' }}>

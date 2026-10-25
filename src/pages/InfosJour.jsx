@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const TYPES = [
   { id: 'entretien', icon: '📅', label: 'Entretiens', color: '#9B5DE5', bg: '#f0edf8', border: '#C084FC', adminOnly: true },
@@ -67,7 +68,7 @@ export default function InfosJour() {
         auteur: impForm.auteur || null,
         jour: today,
       }])
-      await supabase.from('notifications').insert([{ titre: `🖨️ À imprimer${impForm.auteur ? ' — ' + impForm.auteur : ''}`, message: `${impForm.nom} (${impForm.taille} x${impForm.quantite})`, type: 'info', lue: false, lien: '/infos-jour' }])
+      await notifyTeam({ titre: `🖨️ À imprimer${impForm.auteur ? ' — ' + impForm.auteur : ''}`, message: `${impForm.nom} (${impForm.taille} x${impForm.quantite})`, type: 'info', lien: '/infos-jour' })
     }
     setUploading(false)
     setShowImpForm(false)
@@ -100,7 +101,7 @@ export default function InfosJour() {
       jour: today,
       fait: false,
     }])
-    await supabase.from('notifications').insert([{ titre: `${typeLabel}${form.auteur ? ' — ' + form.auteur.trim() : ''}`, message: form.contenu.trim().slice(0, 100), type: 'info', lue: false, lien: '/infos-jour' }])
+    await notifyTeam({ titre: `${typeLabel}${form.auteur ? ' — ' + form.auteur.trim() : ''}`, message: form.contenu.trim().slice(0, 100), type: 'info', lien: '/infos-jour' })
     setSaving(false)
     setShowForm(false)
     setForm({ contenu: '', auteur: sessionStorage.getItem('chat_auteur') || '' })

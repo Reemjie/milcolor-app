@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const REGLES_SECURITE = [
   '🔢 Compter les enfants avant le départ ET au retour',
@@ -57,11 +58,11 @@ export default function Sorties() {
       jour: today,
       statut: 'en_cours',
     }])
-    await supabase.from('notifications').insert([{
+    await notifyTeam({
       titre: `🚶 Sortie — ${pendingForm.activite}`,
       message: `${pendingForm.nb_enfants} enfants avec ${pendingForm.animateurs}`,
-      type: 'info', lue: false, lien: '/infos-jour'
-    }])
+      type: 'info', lien: '/infos-jour'
+    })
     setSaving(false)
     setShowRegles(false)
     setPendingForm(null)

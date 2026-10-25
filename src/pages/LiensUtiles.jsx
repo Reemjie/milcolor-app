@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const CATEGORIES = [
   { id: 'reglementation', icon: '⚖️', label: 'Réglementation', color: '#9B5DE5', bg: '#f0edf8' },
@@ -50,7 +51,7 @@ export default function LiensUtiles() {
   async function seedLiens() {
     for (const lien of DEFAULTS) {
       await supabase.from('liens_utiles').insert([lien])
-      await supabase.from('notifications').insert([{ titre: `🔗 Nouveau lien — ${lien.titre}`, message: lien.description || lien.url, type: 'info', lue: false, lien: '/liens-utiles' }])
+      await notifyTeam({ titre: `🔗 Nouveau lien — ${lien.titre}`, message: lien.description || lien.url, type: 'info', lien: '/liens-utiles' })
     }
     fetchLiens()
   }
@@ -60,7 +61,7 @@ export default function LiensUtiles() {
     setSaving(true)
     let url = form.url.trim()
     if (!url.startsWith('http')) url = 'https://' + url
-    await supabase.from('notifications').insert([{ titre: `🔗 Nouveau lien — ${form.titre}`, message: form.description || url, type: 'info', lue: false, lien: '/liens-utiles' }])
+    await notifyTeam({ titre: `🔗 Nouveau lien — ${form.titre}`, message: form.description || url, type: 'info', lien: '/liens-utiles' })
     await supabase.from('liens_utiles').insert([{ ...form, url }])
     setSaving(false)
     setShowForm(false)

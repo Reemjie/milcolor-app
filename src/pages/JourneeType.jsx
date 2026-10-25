@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 function resizeImage(file) {
   return new Promise(resolve => {
@@ -239,7 +240,7 @@ export function Objectifs() {
       }
       if (url) {
         await supabase.from('objectifs_fichiers').insert([{ url, nom: file.name }])
-        await supabase.from('notifications').insert([{ titre: '🎯 Objectifs mis à jour', message: `Fichier ajouté : ${file.name}`, type: 'info', lue: false, lien: '/objectifs' }])
+        await notifyTeam({ titre: '🎯 Objectifs mis à jour', message: `Fichier ajouté : ${file.name}`, type: 'info', lien: '/objectifs' })
       }
     }
     setUploading(false)

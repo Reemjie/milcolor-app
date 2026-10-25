@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const SECTIONS = [
   {
@@ -69,7 +70,7 @@ export default function Bilan() {
       await supabase.from('bilans').update(form).eq('id', id)
     } else {
       await supabase.from('bilans').insert([form])
-    await supabase.from('notifications').insert([{ titre: `📋 Bilan — ${form.prenom} ${form.nom}`, message: `Bilan du ${form.jour} soumis`, type: 'info', lue: false, lien: '/bilans' }])
+    await notifyTeam({ titre: `📋 Bilan — ${form.prenom} ${form.nom}`, message: `Bilan du ${form.jour} soumis`, type: 'info', lien: '/bilans' })
     }
     setSaving(false)
     navigate('/chat')

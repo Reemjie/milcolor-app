@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 export default function InfosSorties() {
   const { isAdmin } = useAuth()
@@ -46,7 +47,7 @@ export default function InfosSorties() {
       await supabase.from('infos_sorties').update(payload).eq('id', editItem.id)
     } else {
       await supabase.from('infos_sorties').insert([payload])
-      await supabase.from('notifications').insert([{ titre: `🗺️ Sortie ajoutée — ${form.titre}`, message: form.lieu || '', type: 'info', lue: false, lien: '/infos-sorties' }])
+      await notifyTeam({ titre: `🗺️ Sortie ajoutée — ${form.titre}`, message: form.lieu || '', type: 'info', lien: '/infos-sorties' })
     }
     setSaving(false)
     setShowForm(false)

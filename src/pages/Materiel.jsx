@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const STATUTS = [
   { id: 'alerte', label: '⚠️ Manque', color: '#CC6600', bg: '#FFF3E0', border: '#FF9F43' },
@@ -39,7 +40,7 @@ export default function Materiel() {
     if (!form.nom || !form.signale_par) return
     setSaving(true)
     await supabase.from('materiel').insert([form])
-    await supabase.from('notifications').insert([{ titre: `🔧 Signalement matériel — ${form.nom}`, message: form.description || form.statut, type: 'info', lue: false, lien: '/materiel' }])
+    await notifyTeam({ titre: `🔧 Signalement matériel — ${form.nom}`, message: form.description || form.statut, type: 'info', lien: '/materiel' })
     setSaving(false)
     setShowForm(false)
     setForm({ nom: '', description: '', statut: 'alerte', signale_par: '' })

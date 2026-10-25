@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const JOURS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven']
 const GRID = 'minmax(0,1.4fr) minmax(0,1fr) minmax(0,1fr) minmax(0,0.8fr)'
@@ -79,7 +80,7 @@ export default function EffectifsPrevus() {
     }
     if (vides.length > 0) await supabase.from('effectifs_prevus').delete().in('jour', vides)
     if (upserts.length > 0) {
-      await supabase.from('notifications').insert([{ titre: '📊 Effectifs prévus mis à jour', message: 'Semaine du ' + semaineLabel, type: 'info', lue: false, lien: '/infos-enfants' }])
+      await notifyTeam({ titre: '📊 Effectifs prévus mis à jour', message: 'Semaine du ' + semaineLabel, type: 'info', lien: '/infos-enfants' })
     }
     setSaving(false)
     setEditing(false)

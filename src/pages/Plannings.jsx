@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const COLORS = ['#FF6B35', '#FFD166', '#06D6A0', '#118AB2', '#FF6B9D', '#9B5DE5']
 
@@ -54,7 +55,7 @@ export default function Plannings() {
       await supabase.from('plannings').update(payload).eq('id', editItem.id)
     } else {
       await supabase.from('plannings').insert([payload])
-      await supabase.from('notifications').insert([{ titre: `📅 Nouveau planning — ${payload.titre}`, message: `Planning ajouté`, type: 'info', lue: false, lien: '/plannings' }])
+      await notifyTeam({ titre: `📅 Nouveau planning — ${payload.titre}`, message: `Planning ajouté`, type: 'info', lien: '/plannings' })
     }
     setSaving(false)
     setShowForm(false)

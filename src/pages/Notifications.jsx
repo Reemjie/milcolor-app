@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 export default function Notifications() {
   const navigate = useNavigate()
@@ -31,7 +32,7 @@ export default function Notifications() {
   async function saveNotif() {
     if (!form.titre) return
     setSaving(true)
-    await supabase.from('notifications').insert([{ ...form, lue: false }])
+    await notifyTeam({ ...form })
     setSaving(false)
     setShowForm(false)
     setForm({ titre: '', message: '', type: 'info' })

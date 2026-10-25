@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const SECTIONS = [
   { id: 'projet_peda', icon: '📚', label: 'Projet pédagogique', color: 'var(--green)', bg: '#E0FBF1', pdfOnly: true },
@@ -48,7 +49,7 @@ export default function Documents() {
       await supabase.from('documents').update({ pdf_url: data.publicUrl, updated_at: new Date().toISOString() }).eq('id', existing.id)
     } else {
       await supabase.from('documents').insert([{ section_id: sectionId, pdf_url: data.publicUrl }])
-      await supabase.from('notifications').insert([{ titre: `📁 Document mis à jour`, message: `PDF ajouté dans ${sectionId.replace('_', ' ')}`, type: 'info', lue: false, lien: '/documents' }])
+      await notifyTeam({ titre: `📁 Document mis à jour`, message: `PDF ajouté dans ${sectionId.replace('_', ' ')}`, type: 'info', lien: '/documents' })
     }
     setUploading(false)
     fetchDocs()
@@ -67,7 +68,7 @@ export default function Documents() {
     setUploading(true)
     const filename = `pdfs/${Date.now()}_${file.name}`
     await supabase.storage.from('documents').upload(filename, file)
-    await supabase.from('notifications').insert([{ titre: '📁 Nouveau document PDF', message: file.name, type: 'info', lue: false, lien: '/documents' }])
+    await notifyTeam({ titre: '📁 Nouveau document PDF', message: file.name, type: 'info', lien: '/documents' })
     setUploading(false)
     fetchPdfs()
     e.target.value = ''
@@ -91,7 +92,7 @@ export default function Documents() {
       await supabase.from('documents').update({ contenu: editContent, updated_at: new Date().toISOString() }).eq('id', existing.id)
     } else {
       await supabase.from('documents').insert([{ section_id: editSection, contenu: editContent }])
-      await supabase.from('notifications').insert([{ titre: `📁 Document mis à jour`, message: `Contenu modifié dans ${editSection.replace(/_/g, ' ')}`, type: 'info', lue: false, lien: '/documents' }])
+      await notifyTeam({ titre: `📁 Document mis à jour`, message: `Contenu modifié dans ${editSection.replace(/_/g, ' ')}`, type: 'info', lien: '/documents' })
     }
     setSaving(false)
     setEditSection(null)

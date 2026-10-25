@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { notifyTeam } from '../lib/notify'
 
 const CATS = [
   { id: 'urgent', label: '🚨 Alerte', color: '#FF4444', bg: '#FFE8E8' },
@@ -52,7 +53,7 @@ export default function Chat() {
     sessionStorage.setItem('chat_auteur', auteur)
     await supabase.from('remarques').insert([{ auteur: auteur.trim(), contenu: texte.trim(), categorie: cat, date_journee: new Date().toISOString().slice(0, 10) }])
     const catLabel = cat === 'urgent' ? '🚨 Urgent' : cat === 'bilan' ? '📊 Bilan' : cat === 'idee' ? '💡 Idée' : '💬 Général'
-    await supabase.from('notifications').insert([{ titre: `${catLabel} — ${auteur.trim()}`, message: texte.trim().slice(0, 100), type: 'info', lue: false, lien: '/chat' }])
+    await notifyTeam({ titre: `${catLabel} — ${auteur.trim()}`, message: texte.trim().slice(0, 100), type: 'info', lien: '/chat' })
     setTexte('')
     setSending(false)
     fetchMessages()
