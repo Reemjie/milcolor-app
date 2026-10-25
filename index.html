@@ -18,7 +18,8 @@
     OneSignalDeferred.push(async function(OneSignal) {
       await OneSignal.init({
         appId: "62327bb6-58fb-41e4-9738-ace048ea1134",
-        serviceWorkerPath: "/milcolor-app/OneSignalSDK.sw.js",
+        serviceWorkerPath: "/milcolor-app/OneSignalSDKWorker.js",
+        serviceWorkerUpdaterPath: "/milcolor-app/OneSignalSDKUpdaterWorker.js",
         serviceWorkerParam: { scope: "/milcolor-app/" },
         allowLocalhostAsSecureOrigin: true,
         promptOptions: {
@@ -37,7 +38,7 @@
       });
     });
   </script>
-    <script type="module" crossorigin src="/milcolor-app/assets/index-BbRyglWF.js"></script>
+    <script type="module" crossorigin src="/milcolor-app/assets/index-J-qvxXgK.js"></script>
     <link rel="stylesheet" crossorigin href="/milcolor-app/assets/index-DHncK5Wj.css">
   </head>
   <body>
