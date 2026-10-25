@@ -20,10 +20,24 @@
         appId: "6f0e5885-7f27-4209-9ae3-c0d33504745f",
         serviceWorkerPath: "/milcolor-app/OneSignalSDK.sw.js",
         serviceWorkerParam: { scope: "/milcolor-app/" },
+        allowLocalhostAsSecureOrigin: true,
+        promptOptions: {
+          slidedown: {
+            prompts: [{
+              type: "push",
+              autoPrompt: false,
+              text: {
+                actionMessage: "Active les notifications Milcolor pour suivre les ajouts de l'équipe.",
+                acceptButton: "Activer",
+                cancelButton: "Plus tard",
+              }
+            }]
+          }
+        }
       });
     });
   </script>
-    <script type="module" crossorigin src="/milcolor-app/assets/index-ClKiycbW.js"></script>
+    <script type="module" crossorigin src="/milcolor-app/assets/index-CPwUiwkI.js"></script>
     <link rel="stylesheet" crossorigin href="/milcolor-app/assets/index-DHncK5Wj.css">
   </head>
   <body>
