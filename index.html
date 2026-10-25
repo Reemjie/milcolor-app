@@ -12,34 +12,7 @@
     <link rel="manifest" href="/milcolor-app/manifest.json" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
     <title>Milcolor App</title>
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId: "62327bb6-58fb-41e4-9738-ace048ea1134",
-        serviceWorkerPath: "OneSignalSDKWorker.js",
-        serviceWorkerUpdaterPath: "OneSignalSDKUpdaterWorker.js",
-        serviceWorkerParam: { scope: "/milcolor-app/" },
-        allowLocalhostAsSecureOrigin: true,
-        // Pas d'auto-prompt : on gère via le bouton Activer (geste utilisateur)
-        promptOptions: {
-          slidedown: {
-            prompts: [{
-              type: "push",
-              autoPrompt: false,
-              text: {
-                actionMessage: "Active les notifications Milcolor pour suivre les ajouts de l'équipe.",
-                acceptButton: "Activer",
-                cancelButton: "Plus tard",
-              }
-            }]
-          }
-        }
-      });
-    });
-  </script>
-    <script type="module" crossorigin src="/milcolor-app/assets/index-cEKZ6YlS.js"></script>
+    <script type="module" crossorigin src="/milcolor-app/assets/index-CvlGvVsR.js"></script>
     <link rel="stylesheet" crossorigin href="/milcolor-app/assets/index-DHncK5Wj.css">
   </head>
   <body>
