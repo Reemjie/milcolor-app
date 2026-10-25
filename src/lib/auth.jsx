@@ -1,39 +1,82 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { supabase } from './supabase'
 
 const AuthContext = createContext(null)
 
-const ANIM_PASSWORD = import.meta.env.VITE_ANIM_PASSWORD || 'milcolor2026'
-const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD || 'directeur2026'
+const ADMIN_EMAIL = import.meta.env.VITE_ADMIN_EMAIL || 'directeur@milcolor.app'
+const ANIM_EMAIL = import.meta.env.VITE_ANIM_EMAIL || 'animateur@milcolor.app'
+
+function roleFromUser(user) {
+  if (!user) return null
+  const meta = user.app_metadata?.role || user.user_metadata?.role
+  if (meta === 'admin' || meta === 'animateur') return meta
+  if (user.email === ADMIN_EMAIL) return 'admin'
+  if (user.email === ANIM_EMAIL) return 'animateur'
+  return 'animateur'
+}
 
 export function AuthProvider({ children }) {
-  const [role, setRole] = useState(() => sessionStorage.getItem('milcolor_role') || null)
+  const [role, setRole] = useState(null)
+  const [ready, setReady] = useState(false)
 
-  const login = (password) => {
-    if (password === ADMIN_PASSWORD) {
-      setRole('admin')
-      sessionStorage.setItem('milcolor_role', 'admin')
-      return 'admin'
+  useEffect(() => {
+    // Ancien auth client-side — ne plus l'utiliser
+    try { sessionStorage.removeItem('milcolor_role') } catch { /* ignore */ }
+
+    let mounted = true
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return
+      setRole(roleFromUser(session?.user))
+      setReady(true)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setRole(roleFromUser(session?.user))
+      setReady(true)
+    })
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
     }
-    if (password === ANIM_PASSWORD) {
-      setRole('animateur')
-      sessionStorage.setItem('milcolor_role', 'animateur')
-      return 'animateur'
+  }, [])
+
+  /** Mot de passe seul : tente directeur puis animateur (comptes Supabase Auth). */
+  const login = async (password) => {
+    const attempts = [
+      { email: ADMIN_EMAIL, role: 'admin' },
+      { email: ANIM_EMAIL, role: 'animateur' },
+    ]
+
+    for (const attempt of attempts) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: attempt.email,
+        password,
+      })
+      if (!error && data.session) {
+        const resolved = roleFromUser(data.user) || attempt.role
+        setRole(resolved)
+        return resolved
+      }
     }
     return null
   }
 
-  const loginAsAnimateur = () => {
-    setRole('animateur')
-    sessionStorage.setItem('milcolor_role', 'animateur')
-  }
-
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut()
     setRole(null)
-    sessionStorage.removeItem('milcolor_role')
   }
 
   return (
-    <AuthContext.Provider value={{ role, login, loginAsAnimateur, logout, isAdmin: role === 'admin', isLoggedIn: !!role }}>
+    <AuthContext.Provider value={{
+      role,
+      login,
+      logout,
+      ready,
+      isAdmin: role === 'admin',
+      isLoggedIn: !!role,
+    }}>
       {children}
     </AuthContext.Provider>
   )

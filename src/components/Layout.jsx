@@ -73,7 +73,7 @@ export default function Layout() {
             🔔
             {unread > 0 && <span style={{ position: 'absolute', top: -4, right: -4, background: 'var(--orange)', color: 'white', borderRadius: '50%', width: 16, height: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 700 }}>{unread}</span>}
           </button>
-          <button onClick={() => { logout(); navigate('/login', { replace: true }) }} style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '5px 10px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text2)' }}>
+          <button onClick={async () => { await logout(); navigate('/login', { replace: true }) }} style={{ background: 'var(--bg)', border: '1.5px solid var(--border)', borderRadius: 8, padding: '5px 10px', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text2)' }}>
             Quitter
           </button>
         </div>

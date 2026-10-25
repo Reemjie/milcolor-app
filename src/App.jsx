@@ -29,15 +29,34 @@ import BilansList from './pages/BilansList'
 import Mercredis from './pages/Mercredis'
 import MercrediPlanning from './pages/MercrediPlanning'
 
+function AuthSplash() {
+  return (
+    <div style={{
+      minHeight: '100dvh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+      background: 'var(--bg)',
+    }}>
+      <div className="spinner" style={{ margin: 0 }} />
+    </div>
+  )
+}
+
 function ProtectedRoute({ children }) {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, ready } = useAuth()
+  if (!ready) return <AuthSplash />
   return isLoggedIn ? children : <Navigate to="/login" replace />
+}
+
+function LoginRoute() {
+  const { isLoggedIn, ready } = useAuth()
+  if (!ready) return <AuthSplash />
+  if (isLoggedIn) return <Navigate to="/" replace />
+  return <Login />
 }
 
 export default function App() {
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login" element={<LoginRoute />} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Navigate to="/accueil" replace />} />
         <Route path="accueil" element={<Accueil />} />

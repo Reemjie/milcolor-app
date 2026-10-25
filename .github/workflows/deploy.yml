@@ -28,8 +28,8 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
-          VITE_ANIM_PASSWORD: ${{ secrets.VITE_ANIM_PASSWORD }}
-          VITE_ADMIN_PASSWORD: ${{ secrets.VITE_ADMIN_PASSWORD }}
+          VITE_ANIM_EMAIL: ${{ secrets.VITE_ANIM_EMAIL }}
+          VITE_ADMIN_EMAIL: ${{ secrets.VITE_ADMIN_EMAIL }}
 
       - name: Copy OneSignal service worker
         run: cp public/OneSignalSDK.sw.js dist/OneSignalSDK.sw.js

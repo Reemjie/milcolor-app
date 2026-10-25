@@ -47,34 +47,8 @@ create table if not exists documents (
 );
 
 -- ============================================================
--- Politiques RLS (Row Level Security)
--- Accès public en lecture/écriture (protégé par mot de passe côté app)
+-- RLS : NE PAS utiliser d’accès public.
+-- Après création des tables, exécute supabase-secure-rls.sql
+-- (accès réservé aux utilisateurs Supabase Auth).
+-- Voir SETUP-SECURITE.md
 -- ============================================================
-
-alter table activites enable row level security;
-alter table plannings enable row level security;
-alter table remarques enable row level security;
-alter table documents enable row level security;
-
--- Tout le monde peut lire
-create policy "Lecture publique activites" on activites for select using (true);
-create policy "Lecture publique plannings" on plannings for select using (true);
-create policy "Lecture publique remarques" on remarques for select using (true);
-create policy "Lecture publique documents" on documents for select using (true);
-
--- Tout le monde peut insérer (authentification gérée côté app)
-create policy "Insertion publique activites" on activites for insert with check (true);
-create policy "Insertion publique plannings" on plannings for insert with check (true);
-create policy "Insertion publique remarques" on remarques for insert with check (true);
-create policy "Insertion publique documents" on documents for insert with check (true);
-
--- Tout le monde peut modifier
-create policy "Mise a jour activites" on activites for update using (true);
-create policy "Mise a jour plannings" on plannings for update using (true);
-create policy "Mise a jour remarques" on remarques for update using (true);
-create policy "Mise a jour documents" on documents for update using (true);
-
--- Tout le monde peut supprimer
-create policy "Suppression activites" on activites for delete using (true);
-create policy "Suppression plannings" on plannings for delete using (true);
-create policy "Suppression remarques" on remarques for delete using (true);

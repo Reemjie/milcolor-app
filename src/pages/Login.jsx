@@ -6,27 +6,25 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login, loginAsAnimateur } = useAuth()
+  const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    setTimeout(() => {
-      const role = login(password)
+    try {
+      const role = await login(password)
       if (role) {
         navigate('/', { replace: true })
       } else {
         setError('Mot de passe incorrect')
         setLoading(false)
       }
-    }, 400)
-  }
-
-   const enterAsAnimateur = (destination = '/') => {
-    loginAsAnimateur()
-    navigate(destination, { replace: true })
+    } catch {
+      setError('Connexion impossible. Réessaie dans un instant.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -39,7 +37,6 @@ export default function Login() {
       background: 'linear-gradient(145deg, #FFF9F0 0%, #FFE8D6 100%)',
       padding: '24px',
     }}>
-      {/* Logo / Header */}
       <div style={{ textAlign: 'center', marginBottom: 40 }}>
         <img src="/milcolor-app/icon-512.png" alt="Milcolor App" style={{
           width: 100, height: 100,
@@ -54,7 +51,6 @@ export default function Login() {
         </p>
       </div>
 
-      {/* Form */}
       <form onSubmit={handleSubmit} style={{
         background: 'white',
         borderRadius: 24,
@@ -63,10 +59,11 @@ export default function Login() {
         maxWidth: 380,
         boxShadow: '0 8px 32px rgba(0,0,0,0.08)',
       }}>
-        <label style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: '0.9rem' }}>
+        <label htmlFor="milcolor-password" style={{ display: 'block', marginBottom: 8, fontWeight: 700, fontSize: '0.9rem' }}>
           Mot de passe
         </label>
         <input
+          id="milcolor-password"
           type="password"
           value={password}
           onChange={e => setPassword(e.target.value)}
@@ -82,12 +79,12 @@ export default function Login() {
             transition: 'border-color 0.2s',
             background: 'var(--bg)',
           }}
-          onFocus={e => { if(!error) e.target.style.borderColor = 'var(--orange)' }}
-          onBlur={e => { if(!error) e.target.style.borderColor = 'var(--border)' }}
+          onFocus={e => { if (!error) e.target.style.borderColor = 'var(--orange)' }}
+          onBlur={e => { if (!error) e.target.style.borderColor = 'var(--border)' }}
         />
         {error && (
-          <p style={{ color: '#FF4444', fontSize: '0.82rem', marginBottom: 12 }}>
-            ⚠️ {error}
+          <p role="alert" style={{ color: '#FF4444', fontSize: '0.82rem', marginBottom: 12 }}>
+            {error}
           </p>
         )}
         <button
@@ -103,21 +100,11 @@ export default function Login() {
             opacity: loading || !password ? 0.6 : 1,
           }}
         >
-          {loading ? '⏳ Connexion…' : '🚀 Accéder à l\'app'}
+          {loading ? 'Connexion…' : "Accéder à l'app"}
         </button>
       </form>
 
-      <div style={{ marginTop: 16, textAlign: 'center', width: '100%', maxWidth: 380 }}>
-        <p style={{ fontSize: '0.82rem', color: 'var(--text2)', marginBottom: 12 }}>ou</p>
-        <button onClick={() => enterAsAnimateur('/')} style={{ background: 'none', border: '2px solid var(--border)', borderRadius: 12, padding: '12px 20px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text2)', cursor: 'pointer', width: '100%', marginBottom: 10 }}>
-          🎨 Animateur des vacances
-        </button>
-        <button onClick={() => enterAsAnimateur('/mercredis')} style={{ background: 'none', border: '2px solid var(--border)', borderRadius: 12, padding: '12px 20px', fontSize: '0.9rem', fontWeight: 700, color: 'var(--text2)', cursor: 'pointer', width: '100%' }}>
-          🗓 Animateur des mercredis
-        </button>
-      </div>
-
-      <p style={{ marginTop: 16, fontSize: '0.8rem', color: 'var(--text2)', textAlign: 'center' }}>
+      <p style={{ marginTop: 24, fontSize: '0.8rem', color: 'var(--text2)', textAlign: 'center' }}>
         Milcolor · Centre de loisirs
       </p>
     </div>
