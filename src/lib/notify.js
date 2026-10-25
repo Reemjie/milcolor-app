@@ -1,9 +1,6 @@
 import { supabase } from './supabase'
 
-/**
- * Crée une notif in-app + envoie un push OneSignal à toute l’équipe.
- * Ne bloque jamais l’UI si le push échoue.
- */
+/** Crée une notification in-app (cloche). Pas de push externe. */
 export async function notifyTeam({ titre, message = '', type = 'info', lien = null }) {
   const row = {
     titre,
@@ -19,22 +16,6 @@ export async function notifyTeam({ titre, message = '', type = 'info', lien = nu
     .select('id')
     .maybeSingle()
 
-  if (error) {
-    console.error('notifyTeam insert', error)
-    return { data: null, error }
-  }
-
-  // Fire-and-forget push
-  supabase.functions.invoke('send-push', {
-    body: {
-      titre,
-      message: message || '',
-      type: type || 'info',
-      lien: lien || '/notifications',
-    },
-  }).then(({ error: pushError }) => {
-    if (pushError) console.warn('send-push', pushError.message || pushError)
-  }).catch((e) => console.warn('send-push', e))
-
-  return { data, error: null }
+  if (error) console.error('notifyTeam', error)
+  return { data, error }
 }
