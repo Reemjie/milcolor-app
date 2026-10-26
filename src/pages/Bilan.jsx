@@ -123,6 +123,23 @@ export default function Bilan() {
         </div>
       </div>
 
+      {/* Activités — obligatoire, tout en haut */}
+      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#06D6A0', marginBottom: 6 }}>🧩 Activités réalisées *</div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 10 }}>Liste courte de ce qui a été fait aujourd’hui — obligatoire.</p>
+        <textarea
+          value={activites}
+          onChange={e => setActivites(e.target.value)}
+          placeholder="ex: parcours moteur, peinture, chasse au trésor…"
+          rows={3}
+          style={{
+            ...iStyle,
+            resize: 'vertical',
+            borderColor: activitesOk ? 'var(--border)' : '#FFD4A8',
+          }}
+        />
+      </section>
+
       {/* Infos */}
       <section className="card" style={{ padding: 16, marginBottom: 14 }}>
         <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#118AB2', marginBottom: 12 }}>👤 Toi & le groupe</div>
@@ -152,23 +169,6 @@ export default function Bilan() {
             }}>{t}</button>
           ))}
         </div>
-      </section>
-
-      {/* Activités — obligatoire, en premier */}
-      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#06D6A0', marginBottom: 6 }}>🧩 Activités réalisées *</div>
-        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 10 }}>Liste courte de ce qui a été fait aujourd’hui.</p>
-        <textarea
-          value={activites}
-          onChange={e => setActivites(e.target.value)}
-          placeholder="ex: parcours moteur, peinture, chasse au trésor…"
-          rows={3}
-          style={{
-            ...iStyle,
-            resize: 'vertical',
-            borderColor: activitesOk ? 'var(--border)' : '#FFD4A8',
-          }}
-        />
       </section>
 
       {/* Notes /10 */}

@@ -5,6 +5,13 @@ import App from './App'
 import { AuthProvider } from './lib/auth'
 import './index.css'
 
+// Purge d'anciens service workers (OneSignal / cache PWA) pour forcer la dernière version
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister())
+  }).catch(() => {})
+}
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <HashRouter>
