@@ -10,17 +10,10 @@ export default function BilansList() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [bilans, setBilans] = useState([])
-  const [equipe, setEquipe] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('bilans')
 
-  useEffect(() => {
-    fetchBilans()
-    if (isAdmin) {
-      supabase.from('mercredi_animateurs').select('prenom').eq('actif', true).order('prenom')
-        .then(({ data }) => setEquipe(data || []))
-    }
-  }, [isAdmin])
+  useEffect(() => { fetchBilans() }, [])
 
   async function fetchBilans() {
     setLoading(true)
@@ -66,7 +59,7 @@ export default function BilansList() {
 
       {/* Vue du jour — directeur */}
       {isAdmin && activeTab === 'bilans' && !loading && (
-        <BilanJourDirecteur bilans={bilans} equipe={equipe} showAllLink={false} />
+        <BilanJourDirecteur bilans={bilans} showAllLink={false} />
       )}
 
       {/* Onglet notes directeur */}

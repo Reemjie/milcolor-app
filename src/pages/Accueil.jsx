@@ -15,7 +15,6 @@ export default function Accueil() {
   const [showBilanRappel, setShowBilanRappel] = useState(() => !isAdmin && shouldShowBilanRappel())
   const [notifs, setNotifs] = useState([])
   const [bilans, setBilans] = useState([])
-  const [equipe, setEquipe] = useState([])
   const [bilanOuvert, setBilanOuvert] = useState(null)
   const [note, setNote] = useState('')
   const [savingNote, setSavingNote] = useState(false)
@@ -36,17 +35,9 @@ export default function Accueil() {
   useEffect(() => {
     fetchNotifs()
     fetchAlertesMateriel()
-    if (isAdmin) {
-      fetchBilans()
-      fetchEquipe()
-    }
+    if (isAdmin) fetchBilans()
     setShowBilanRappel(!isAdmin && shouldShowBilanRappel())
   }, [isAdmin])
-
-  async function fetchEquipe() {
-    const { data } = await supabase.from('mercredi_animateurs').select('prenom').eq('actif', true).order('prenom')
-    setEquipe(data || [])
-  }
 
   function hideBilanRappel() {
     dismissBilanRappel()
@@ -247,7 +238,6 @@ export default function Accueil() {
         <div style={{ marginBottom: 24 }}>
           <BilanJourDirecteur
             bilans={bilans}
-            equipe={equipe}
             onOpen={b => { setBilanOuvert(b); setNote(b.notes_directeur || '') }}
           />
           {bilans.filter(b => b.jour !== new Date().toISOString().slice(0, 10)).length > 0 && (
