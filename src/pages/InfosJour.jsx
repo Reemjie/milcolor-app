@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { notifyTeam } from '../lib/notify'
+import { getIdentity, setIdentity } from '../lib/identity'
 
 const TYPES = [
   { id: 'entretien', icon: '📅', label: 'Entretiens', color: '#9B5DE5', bg: '#f0edf8', border: '#C084FC', adminOnly: true },
@@ -21,12 +22,12 @@ export default function InfosJour() {
   const [activeType, setActiveType] = useState('all')
   const [showForm, setShowForm] = useState(false)
   const [formType, setFormType] = useState('depart')
-  const [form, setForm] = useState({ contenu: '', auteur: sessionStorage.getItem('chat_auteur') || '' })
+  const [form, setForm] = useState({ contenu: '', auteur: getIdentity()?.prenom || '' })
   const [saving, setSaving] = useState(false)
   const [impressions, setImpressions] = useState([])
   const [showImpForm, setShowImpForm] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [impForm, setImpForm] = useState({ nom: '', taille: 'A4', quantite: 1, auteur: sessionStorage.getItem('chat_auteur') || '', files: [] })
+  const [impForm, setImpForm] = useState({ nom: '', taille: 'A4', quantite: 1, auteur: getIdentity()?.prenom || '', files: [] })
   const today = new Date().toISOString().slice(0, 10)
 
   useEffect(() => { fetchItems(); fetchImpressions() }, [])
@@ -55,7 +56,7 @@ export default function InfosJour() {
   async function uploadImpression() {
     if (!impForm.nom || impForm.files.length === 0) return
     setUploading(true)
-    if (impForm.auteur) sessionStorage.setItem('chat_auteur', impForm.auteur)
+    if (impForm.auteur) setIdentity({ prenom: impForm.auteur.trim(), nom: getIdentity()?.nom || '' })
     for (const file of impForm.files) {
       const filename = `${Date.now()}_${file.name}`
       await supabase.storage.from('impressions').upload(filename, file)
@@ -72,7 +73,7 @@ export default function InfosJour() {
     }
     setUploading(false)
     setShowImpForm(false)
-    setImpForm({ nom: '', taille: 'A4', quantite: 1, auteur: sessionStorage.getItem('chat_auteur') || '', files: [] })
+    setImpForm({ nom: '', taille: 'A4', quantite: 1, auteur: getIdentity()?.prenom || '', files: [] })
     fetchImpressions()
   }
 
@@ -92,7 +93,7 @@ export default function InfosJour() {
   async function addItem() {
     if (!form.contenu.trim()) return
     setSaving(true)
-    if (form.auteur) sessionStorage.setItem('chat_auteur', form.auteur)
+    if (form.auteur) setIdentity({ prenom: form.auteur.trim(), nom: getIdentity()?.nom || '' })
     const typeLabel = { entretien: '📅 Entretien', depart: '🚪 Départ anticipé', info_parent: '💬 Info parent', todo: '✅ À faire' }[formType] || formType
     await supabase.from('infos_jour').insert([{
       type: formType,
@@ -104,13 +105,13 @@ export default function InfosJour() {
     await notifyTeam({ titre: `${typeLabel}${form.auteur ? ' — ' + form.auteur.trim() : ''}`, message: form.contenu.trim().slice(0, 100), type: 'info', lien: '/infos-jour' })
     setSaving(false)
     setShowForm(false)
-    setForm({ contenu: '', auteur: sessionStorage.getItem('chat_auteur') || '' })
+    setForm({ contenu: '', auteur: getIdentity()?.prenom || '' })
     fetchItems()
   }
 
   async function toggleFait(item) {
     if (item.type !== 'todo') return
-    const prenom = sessionStorage.getItem('chat_auteur') || ''
+    const prenom = getIdentity()?.prenom || ''
     await supabase.from('infos_jour').update({ fait: !item.fait, fait_par: !item.fait ? prenom : null }).eq('id', item.id)
     fetchItems()
   }

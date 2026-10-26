@@ -3,6 +3,7 @@ import { useAuth } from '../lib/auth'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { BilanDetail, BilanListPreview } from '../components/BilanSummary'
+import BilanJourDirecteur from '../components/BilanJourDirecteur'
 import { alertFlags } from '../lib/bilan'
 import { shouldShowBilanRappel, dismissBilanRappel } from '../lib/bilanRappel'
 
@@ -12,31 +13,40 @@ export default function Accueil() {
   const [alertesMateriel, setAlertesMateriel] = useState([])
   const [alertes, setAlertes] = useState([])
   const [showBilanRappel, setShowBilanRappel] = useState(() => !isAdmin && shouldShowBilanRappel())
-
-  useEffect(() => {
-    async function fetchAlertes() {
-      const { data: msgs } = await supabase.from('remarques').select('*').eq('categorie', 'urgent').order('created_at', { ascending: false }).limit(5)
-      const { data: notifs } = await supabase.from('notifications').select('*').eq('lue', false).order('created_at', { ascending: false }).limit(3)
-      const all = [
-        ...(msgs || []).map(m => ({ ...m, _type: 'chat' })),
-        ...(notifs || []).map(n => ({ ...n, _type: 'notif' })),
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      setAlertes(all)
-    }
-    fetchAlertes()
-  }, [])
   const [notifs, setNotifs] = useState([])
   const [bilans, setBilans] = useState([])
+  const [equipe, setEquipe] = useState([])
   const [bilanOuvert, setBilanOuvert] = useState(null)
   const [note, setNote] = useState('')
   const [savingNote, setSavingNote] = useState(false)
 
   useEffect(() => {
+    async function fetchAlertes() {
+      const { data: msgs } = await supabase.from('remarques').select('*').eq('categorie', 'urgent').order('created_at', { ascending: false }).limit(5)
+      const { data: notifsData } = await supabase.from('notifications').select('*').eq('lue', false).order('created_at', { ascending: false }).limit(3)
+      const all = [
+        ...(msgs || []).map(m => ({ ...m, _type: 'chat' })),
+        ...(notifsData || []).map(n => ({ ...n, _type: 'notif' })),
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      setAlertes(all)
+    }
+    fetchAlertes()
+  }, [])
+
+  useEffect(() => {
     fetchNotifs()
     fetchAlertesMateriel()
-    if (isAdmin) fetchBilans()
+    if (isAdmin) {
+      fetchBilans()
+      fetchEquipe()
+    }
     setShowBilanRappel(!isAdmin && shouldShowBilanRappel())
   }, [isAdmin])
+
+  async function fetchEquipe() {
+    const { data } = await supabase.from('mercredi_animateurs').select('prenom').eq('actif', true).order('prenom')
+    setEquipe(data || [])
+  }
 
   function hideBilanRappel() {
     dismissBilanRappel()
@@ -232,52 +242,47 @@ export default function Accueil() {
         </div>
       </div>
 
-      {/* Bilans directeur */}
+      {/* Bilans directeur — vue du jour + récents */}
       {isAdmin && (
         <div style={{ marginBottom: 24 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h2 style={{ fontSize: '1rem', color: 'var(--text2)', fontWeight: 700 }}>📋 Bilans des animateurs</h2>
-            <button onClick={() => navigate('/bilans')} style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--orange)', background: 'none', border: 'none' }}>Tous →</button>
-          </div>
-          {bilans.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px', background: 'white', borderRadius: 14, color: 'var(--text2)', fontSize: '0.85rem' }}>
-              Aucun bilan pour l'instant
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {bilans.slice(0, 5).map(b => {
-                const flags = alertFlags(b)
-                return (
-                <div key={b.id} onClick={() => { setBilanOuvert(b); setNote(b.notes_directeur || '') }}
-                  style={{
-                    background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)', cursor: 'pointer',
-                    border: flags.includes('incident') ? '2px solid #FF6B6B' : (b.notes_directeur ? '2px solid var(--green)' : '2px solid var(--border)'),
-                  }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
-                        {b.prenom?.charAt(0)}{b.nom?.charAt(0)}
-                      </div>
-                      <div>
-                        <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{b.prenom} {b.nom}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text2)' }}>
-                          {new Date(b.jour + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} · {b.tranche_age}
+          <BilanJourDirecteur
+            bilans={bilans}
+            equipe={equipe}
+            onOpen={b => { setBilanOuvert(b); setNote(b.notes_directeur || '') }}
+          />
+          {bilans.filter(b => b.jour !== new Date().toISOString().slice(0, 10)).length > 0 && (
+            <>
+              <h2 style={{ fontSize: '1rem', color: 'var(--text2)', fontWeight: 700, marginBottom: 12 }}>📋 Récents</h2>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {bilans.filter(b => b.jour !== new Date().toISOString().slice(0, 10)).slice(0, 4).map(b => {
+                  const flags = alertFlags(b)
+                  return (
+                    <div key={b.id} onClick={() => { setBilanOuvert(b); setNote(b.notes_directeur || '') }}
+                      style={{
+                        background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)', cursor: 'pointer',
+                        border: flags.includes('incident') ? '2px solid #FF6B6B' : (b.notes_directeur ? '2px solid var(--green)' : '2px solid var(--border)'),
+                      }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
+                            {b.prenom?.charAt(0)}{b.nom?.charAt(0)}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 700, fontSize: '0.9rem' }}>{b.prenom} {b.nom}</div>
+                            <div style={{ fontSize: '0.72rem', color: 'var(--text2)' }}>
+                              {new Date(b.jour + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} · {b.tranche_age}
+                            </div>
+                          </div>
                         </div>
+                        <span style={{ color: 'var(--text2)', fontSize: '1rem' }}>›</span>
                       </div>
+                      <BilanListPreview b={b} />
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {b.notes_directeur && <span style={{ fontSize: '0.7rem', background: '#E0FBF1', color: '#0A7A5A', padding: '2px 8px', borderRadius: 20, fontWeight: 700 }}>✏️ Noté</span>}
-                      <span style={{ color: 'var(--text2)', fontSize: '1rem' }}>›</span>
-                    </div>
-                  </div>
-                  <BilanListPreview b={b} />
-                </div>
-              )})}
-            </div>
+                  )
+                })}
+              </div>
+            </>
           )}
-          <button onClick={() => navigate('/bilans')} style={{ width: '100%', padding: '10px', borderRadius: 10, background: 'var(--bg)', border: '1.5px solid var(--border)', fontWeight: 700, fontSize: '0.82rem', color: 'var(--text2)', marginTop: 8 }}>
-            📋 Voir tous les bilans →
-          </button>
         </div>
       )}
 

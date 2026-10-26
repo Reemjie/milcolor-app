@@ -14,18 +14,21 @@ import {
   scoreColor,
 } from '../lib/bilan'
 import { dismissBilanRappel } from '../lib/bilanRappel'
+import { getIdentity, setIdentity } from '../lib/identity'
 
 const TRANCHES = ['3-5 ans', '6-11 ans', 'Mixte']
-const NOTES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+const NOTES_ROW1 = [1, 2, 3, 4, 5]
+const NOTES_ROW2 = [6, 7, 8, 9, 10]
 
 export default function Bilan() {
   const { id } = useParams()
   const navigate = useNavigate()
   const isEdit = !!id
+  const moi = getIdentity()
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [nom, setNom] = useState('')
-  const [prenom, setPrenom] = useState('')
+  const [nom, setNom] = useState(moi?.nom || '')
+  const [prenom, setPrenom] = useState(moi?.prenom || '')
   const [jour, setJour] = useState(new Date().toISOString().slice(0, 10))
   const [tranche, setTranche] = useState('3-5 ans')
   const [scores, setScores] = useState(() => {
@@ -101,6 +104,7 @@ export default function Bilan() {
       ...legacy,
       ...(isEdit ? { notes_directeur: notesDirecteur } : {}),
     }
+    setIdentity({ prenom: prenom.trim(), nom: nom.trim() })
     if (isEdit) {
       await supabase.from('bilans').update(payload).eq('id', id)
     } else {
@@ -198,25 +202,27 @@ export default function Bilan() {
                 {scores[item.key] != null ? scores[item.key] : '—'}
               </span>
             </div>
-            <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap' }}>
-              {NOTES.map(n => {
-                const active = scores[item.key] === n
-                return (
-                  <button
-                    key={n}
-                    type="button"
-                    onClick={() => setScore(item.key, n)}
-                    style={{
-                      flex: 1, minWidth: 0, padding: '10px 0', borderRadius: 8,
-                      border: `2px solid ${active ? scoreColor(n) : 'var(--border)'}`,
-                      background: active ? scoreColor(n) : 'white',
-                      color: active ? 'white' : 'var(--text2)',
-                      fontWeight: 800, fontSize: '0.78rem',
-                    }}
-                  >{n}</button>
-                )
-              })}
-            </div>
+            {[NOTES_ROW1, NOTES_ROW2].map((row, ri) => (
+              <div key={ri} style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 6, marginBottom: ri === 0 ? 6 : 0 }}>
+                {row.map(n => {
+                  const active = scores[item.key] === n
+                  return (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setScore(item.key, n)}
+                      style={{
+                        minHeight: 44, borderRadius: 10,
+                        border: `2px solid ${active ? scoreColor(n) : 'var(--border)'}`,
+                        background: active ? scoreColor(n) : 'white',
+                        color: active ? 'white' : 'var(--text2)',
+                        fontWeight: 800, fontSize: '0.95rem',
+                      }}
+                    >{n}</button>
+                  )
+                })}
+              </div>
+            ))}
             <textarea
               value={scoreComments[item.key] || ''}
               onChange={e => setScoreComments(c => ({ ...c, [item.key]: e.target.value }))}

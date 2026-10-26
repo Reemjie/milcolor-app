@@ -3,16 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 import { BilanListPreview } from '../components/BilanSummary'
+import BilanJourDirecteur from '../components/BilanJourDirecteur'
 import { alertFlags } from '../lib/bilan'
 
 export default function BilansList() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [bilans, setBilans] = useState([])
+  const [equipe, setEquipe] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('bilans')
 
-  useEffect(() => { fetchBilans() }, [])
+  useEffect(() => {
+    fetchBilans()
+    if (isAdmin) {
+      supabase.from('mercredi_animateurs').select('prenom').eq('actif', true).order('prenom')
+        .then(({ data }) => setEquipe(data || []))
+    }
+  }, [isAdmin])
 
   async function fetchBilans() {
     setLoading(true)
@@ -54,6 +62,11 @@ export default function BilansList() {
             📝 À aborder en réunion
           </button>
         </div>
+      )}
+
+      {/* Vue du jour — directeur */}
+      {isAdmin && activeTab === 'bilans' && !loading && (
+        <BilanJourDirecteur bilans={bilans} equipe={equipe} showAllLink={false} />
       )}
 
       {/* Onglet notes directeur */}

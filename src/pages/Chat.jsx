@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 import { notifyTeam } from '../lib/notify'
+import { getIdentity, setIdentity } from '../lib/identity'
 
 const CATS = [
   { id: 'urgent', label: '🚨 Alerte', color: '#FF4444', bg: '#FFE8E8' },
@@ -23,10 +24,10 @@ export default function Chat() {
   const { isAdmin } = useAuth()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
-  const [auteur, setAuteur] = useState(sessionStorage.getItem('chat_auteur') || '')
+  const [auteur, setAuteur] = useState(() => getIdentity()?.prenom || '')
   const [texte, setTexte] = useState('')
   const [cat, setCat] = useState('general')
-  const [showAuteur, setShowAuteur] = useState(false)
+  const [showAuteur, setShowAuteur] = useState(() => !getIdentity()?.prenom)
   const [sending, setSending] = useState(false)
   const bottomRef = useRef(null)
 
@@ -48,9 +49,12 @@ export default function Chat() {
   }
 
   async function sendMessage() {
-    if (!texte.trim() || !auteur.trim()) return
+    if (!texte.trim() || !auteur.trim()) {
+      if (!auteur.trim()) setShowAuteur(true)
+      return
+    }
     setSending(true)
-    sessionStorage.setItem('chat_auteur', auteur)
+    setIdentity({ prenom: auteur.trim(), nom: getIdentity()?.nom || '' })
     await supabase.from('remarques').insert([{ auteur: auteur.trim(), contenu: texte.trim(), categorie: cat, date_journee: new Date().toISOString().slice(0, 10) }])
     const catLabel = cat === 'urgent' ? '🚨 Urgent' : cat === 'bilan' ? '📊 Bilan' : cat === 'idee' ? '💡 Idée' : '💬 Général'
     await notifyTeam({ titre: `${catLabel} — ${auteur.trim()}`, message: texte.trim().slice(0, 100), type: 'info', lien: '/chat' })
@@ -72,7 +76,7 @@ export default function Chat() {
         <h2 style={{ marginBottom: 8 }}>Comment tu t'appelles ?</h2>
         <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginBottom: 24, textAlign: 'center' }}>Ton prénom apparaîtra sur tes messages</p>
         <input value={auteur} onChange={e => setAuteur(e.target.value)} placeholder="ex: Emma" style={{ width: '100%', maxWidth: 300, padding: '14px 16px', borderRadius: 12, border: '2px solid var(--border)', fontSize: '1rem', textAlign: 'center', marginBottom: 16 }} onKeyDown={e => e.key === 'Enter' && auteur && setShowAuteur(false)} />
-        <button className="btn btn-primary" style={{ padding: '12px 32px', opacity: !auteur ? 0.6 : 1 }} onClick={() => { sessionStorage.setItem('chat_auteur', auteur); setShowAuteur(false) }} disabled={!auteur}>
+        <button className="btn btn-primary" style={{ padding: '12px 32px', opacity: !auteur ? 0.6 : 1 }} onClick={() => { setIdentity({ prenom: auteur.trim(), nom: getIdentity()?.nom || '' }); setShowAuteur(false) }} disabled={!auteur}>
           C'est parti 🚀
         </button>
       </div>
