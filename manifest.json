@@ -2,7 +2,7 @@
   "name": "Milcolor App",
   "short_name": "Milcolor",
   "description": "L'espace des animateurs Milcolor",
-  "start_url": "/milcolor-app/",
+  "start_url": "/milcolor-app/?v=20261026",
   "display": "standalone",
   "background_color": "#FFF9F0",
   "theme_color": "#FF6B35",
