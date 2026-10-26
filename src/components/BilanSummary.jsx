@@ -102,6 +102,7 @@ export function BilanDetail({ b }) {
       {CHECK_ITEMS.map(item => {
         const v = b.checks?.[item.key]
         if (!v) return null
+        if (typeof v.oui !== 'boolean') return null
         return (
           <div key={item.key} style={{ marginBottom: 12 }}>
             <div style={{ fontWeight: 700, fontSize: '0.82rem', marginBottom: 4 }}>

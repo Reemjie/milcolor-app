@@ -7,6 +7,7 @@ import {
   CHECK_ITEMS,
   emptyScores,
   emptyChecks,
+  checksComplete,
   legacyFromStructured,
   scoreColor,
 } from '../lib/bilan'
@@ -71,7 +72,9 @@ export default function Bilan() {
   }
 
   const scoresOk = SCORE_ITEMS.every(i => typeof scores[i.key] === 'number')
-  const canSave = nom.trim() && prenom.trim() && scoresOk && !saving
+  const checksOk = checksComplete(checks)
+  const checksDone = CHECK_ITEMS.filter(i => typeof checks[i.key]?.oui === 'boolean').length
+  const canSave = nom.trim() && prenom.trim() && scoresOk && checksOk && !saving
 
   async function save() {
     if (!canSave) return
@@ -157,7 +160,7 @@ export default function Bilan() {
           </span>
         </div>
         <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 14 }}>
-          Un tap par ligne — obligatoire pour envoyer.
+          Un tap par ligne — notes + cases obligatoires.
         </p>
         {SCORE_ITEMS.map(item => (
           <div key={item.key} style={{ marginBottom: 16 }}>
@@ -192,26 +195,32 @@ export default function Bilan() {
 
       {/* Oui / Non */}
       <section className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#9B5DE5', marginBottom: 6 }}>✅ Points à signaler</div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+          <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#9B5DE5' }}>✅ Points à signaler</div>
+          <span style={{ fontSize: '0.72rem', color: checksOk ? '#0A7A5A' : 'var(--text2)', fontWeight: 700 }}>
+            {checksDone}/4
+          </span>
+        </div>
         <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 14 }}>
-          Par défaut : Non. Si Oui, un commentaire s’ouvre.
+          Réponds Oui ou Non à chaque ligne. Si Oui, un commentaire s’ouvre.
         </p>
         {CHECK_ITEMS.map(item => {
-          const val = checks[item.key] || { oui: false, comment: '' }
+          const val = checks[item.key] || { oui: null, comment: '' }
+          const answered = typeof val.oui === 'boolean'
           return (
             <div key={item.key} style={{
               marginBottom: 12, padding: 12, borderRadius: 12,
-              background: val.oui ? '#FFF9F0' : 'var(--bg)',
-              border: `1.5px solid ${val.oui ? item.yesColor : 'var(--border)'}`,
+              background: val.oui === true ? '#FFF9F0' : 'var(--bg)',
+              border: `1.5px solid ${val.oui === true ? item.yesColor : (answered ? 'var(--border)' : '#FFD4A8')}`,
             }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
                 <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{item.icon} {item.label}</span>
                 <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                  <button type="button" onClick={() => setCheck(item.key, { oui: false, comment: '' })} style={ynBtn(!val.oui, false)}>Non</button>
-                  <button type="button" onClick={() => setCheck(item.key, { oui: true })} style={ynBtn(val.oui, true, item.yesColor)}>Oui</button>
+                  <button type="button" onClick={() => setCheck(item.key, { oui: false, comment: '' })} style={ynBtn(val.oui === false, false)}>Non</button>
+                  <button type="button" onClick={() => setCheck(item.key, { oui: true })} style={ynBtn(val.oui === true, true, item.yesColor)}>Oui</button>
                 </div>
               </div>
-              {val.oui && (
+              {val.oui === true && (
                 <input
                   value={val.comment}
                   onChange={e => setCheck(item.key, { comment: e.target.value })}
@@ -238,9 +247,13 @@ export default function Bilan() {
         />
       </section>
 
-      {!scoresOk && (
+      {(!scoresOk || !checksOk) && (
         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#CC6600', fontWeight: 700, marginBottom: 10 }}>
-          Mets les 3 notes pour pouvoir envoyer
+          {!scoresOk && !checksOk
+            ? 'Mets les 3 notes et réponds aux 4 cases pour envoyer'
+            : !scoresOk
+              ? 'Mets les 3 notes pour pouvoir envoyer'
+              : 'Réponds Oui ou Non aux 4 cases pour envoyer'}
         </p>
       )}
 

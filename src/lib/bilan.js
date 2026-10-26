@@ -19,11 +19,16 @@ export function emptyScores() {
 
 export function emptyChecks() {
   return {
-    incident: { oui: false, comment: '' },
-    materiel: { oui: false, comment: '' },
-    surveiller: { oui: false, comment: '' },
-    suggestion: { oui: false, comment: '' },
+    incident: { oui: null, comment: '' },
+    materiel: { oui: null, comment: '' },
+    surveiller: { oui: null, comment: '' },
+    suggestion: { oui: null, comment: '' },
   }
+}
+
+/** Toutes les cases ont été répondues (Oui ou Non). */
+export function checksComplete(checks) {
+  return CHECK_ITEMS.every(i => typeof checks?.[i.key]?.oui === 'boolean')
 }
 
 export function avgScore(scores) {
@@ -43,7 +48,7 @@ export function scoreColor(n) {
 export function legacyFromStructured({ scores, checks, activites_realisees }) {
   const c = { ...emptyChecks(), ...(checks || {}) }
   Object.keys(c).forEach(k => {
-    c[k] = { oui: !!c[k]?.oui, comment: c[k]?.comment || '' }
+    c[k] = { oui: c[k]?.oui === true, comment: c[k]?.comment || '' }
   })
   return {
     ambiance: scores?.ambiance != null ? `${scores.ambiance}/10` : '',
@@ -66,9 +71,9 @@ export function alertFlags(b) {
   const flags = []
   if (isNewFormat(b)) {
     const c = b.checks || {}
-    if (c.incident?.oui) flags.push('incident')
-    if (c.materiel?.oui) flags.push('materiel')
-    if (c.surveiller?.oui) flags.push('surveiller')
+    if (c.incident?.oui === true) flags.push('incident')
+    if (c.materiel?.oui === true) flags.push('materiel')
+    if (c.surveiller?.oui === true) flags.push('surveiller')
     const avg = avgScore(b.scores)
     if (avg != null && avg <= 4) flags.push('score_bas')
   } else {
