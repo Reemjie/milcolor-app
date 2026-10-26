@@ -72,10 +72,11 @@ export default function Bilan() {
     setChecks(c => ({ ...c, [key]: { ...c[key], ...patch } }))
   }
 
+  const activitesOk = activites.trim().length > 0
   const scoresOk = SCORE_ITEMS.every(i => typeof scores[i.key] === 'number')
   const checksOk = checksComplete(checks)
   const checksDone = CHECK_ITEMS.filter(i => typeof checks[i.key]?.oui === 'boolean').length
-  const canSave = nom.trim() && prenom.trim() && scoresOk && checksOk && !saving
+  const canSave = nom.trim() && prenom.trim() && activitesOk && scoresOk && checksOk && !saving
 
   async function save() {
     if (!canSave) return
@@ -117,7 +118,7 @@ export default function Bilan() {
         <div>
           <h1 style={{ fontSize: '1.4rem' }}>{isEdit ? 'Modifier le bilan' : 'Bilan du jour'}</h1>
           <p style={{ color: 'var(--text2)', fontSize: '0.82rem', marginTop: 2 }}>
-            3 notes + 4 cases · ~1 minute
+            Activités + 3 notes + 4 cases · ~1 minute
           </p>
         </div>
       </div>
@@ -151,6 +152,23 @@ export default function Bilan() {
             }}>{t}</button>
           ))}
         </div>
+      </section>
+
+      {/* Activités — obligatoire, en premier */}
+      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#06D6A0', marginBottom: 6 }}>🧩 Activités réalisées *</div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 10 }}>Liste courte de ce qui a été fait aujourd’hui.</p>
+        <textarea
+          value={activites}
+          onChange={e => setActivites(e.target.value)}
+          placeholder="ex: parcours moteur, peinture, chasse au trésor…"
+          rows={3}
+          style={{
+            ...iStyle,
+            resize: 'vertical',
+            borderColor: activitesOk ? 'var(--border)' : '#FFD4A8',
+          }}
+        />
       </section>
 
       {/* Notes /10 */}
@@ -236,26 +254,9 @@ export default function Bilan() {
         })}
       </section>
 
-      {/* Activités optionnel */}
-      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
-        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#06D6A0', marginBottom: 6 }}>🧩 Activités (optionnel)</div>
-        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 10 }}>Liste courte si tu veux.</p>
-        <textarea
-          value={activites}
-          onChange={e => setActivites(e.target.value)}
-          placeholder="ex: parcours moteur, peinture, chasse au trésor…"
-          rows={2}
-          style={{ ...iStyle, resize: 'vertical' }}
-        />
-      </section>
-
-      {(!scoresOk || !checksOk) && (
+      {(!activitesOk || !scoresOk || !checksOk) && (
         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#CC6600', fontWeight: 700, marginBottom: 10 }}>
-          {!scoresOk && !checksOk
-            ? 'Mets les 3 notes et réponds aux 4 cases pour envoyer'
-            : !scoresOk
-              ? 'Mets les 3 notes pour pouvoir envoyer'
-              : 'Réponds Oui ou Non aux 4 cases pour envoyer'}
+          Complete activités, notes et cases pour envoyer
         </p>
       )}
 

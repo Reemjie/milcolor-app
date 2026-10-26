@@ -109,7 +109,7 @@ export default function Accueil() {
                 📋 Bilan du jour
               </div>
               <p style={{ fontSize: '0.82rem', color: 'var(--text)', marginTop: 4, lineHeight: 1.4 }}>
-                3 notes + 4 cases · environ 1 minute
+                Activités + notes + cases · environ 1 minute
               </p>
             </div>
             <button
