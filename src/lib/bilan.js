@@ -13,8 +13,27 @@ export const CHECK_ITEMS = [
   { key: 'suggestion', label: 'Idée pour demain ?', icon: '💡', yesColor: '#9B5DE5', placeholder: 'Ta proposition…' },
 ]
 
+export function emptyScoreComments() {
+  return { ambiance: '', activites: '', deroulement: '' }
+}
+
 export function emptyScores() {
-  return { ambiance: null, activites: null, deroulement: null }
+  return { ambiance: null, activites: null, deroulement: null, comments: emptyScoreComments() }
+}
+
+export function scoreComment(scores, key) {
+  return (scores?.comments?.[key] || '').trim()
+}
+
+/** Normalise un objet scores issu de la DB (anciens sans comments). */
+export function normalizeScores(raw) {
+  const base = emptyScores()
+  if (!raw || typeof raw !== 'object') return base
+  SCORE_ITEMS.forEach(i => {
+    if (typeof raw[i.key] === 'number') base[i.key] = raw[i.key]
+  })
+  base.comments = { ...emptyScoreComments(), ...(raw.comments || {}) }
+  return base
 }
 
 export function emptyChecks() {
@@ -50,10 +69,15 @@ export function legacyFromStructured({ scores, checks, activites_realisees }) {
   Object.keys(c).forEach(k => {
     c[k] = { oui: c[k]?.oui === true, comment: c[k]?.comment || '' }
   })
+  const noteLine = (key) => {
+    if (scores?.[key] == null) return ''
+    const cmt = scoreComment(scores, key)
+    return cmt ? `${scores[key]}/10 — ${cmt}` : `${scores[key]}/10`
+  }
   return {
-    ambiance: scores?.ambiance != null ? `${scores.ambiance}/10` : '',
-    activites_appreciees: scores?.activites != null ? `${scores.activites}/10` : '',
-    difficultes: scores?.deroulement != null ? `${scores.deroulement}/10` : '',
+    ambiance: noteLine('ambiance'),
+    activites_appreciees: noteLine('activites'),
+    difficultes: noteLine('deroulement'),
     activites_realisees: activites_realisees || '',
     incidents: c.incident.oui ? (c.incident.comment || 'Oui') : '',
     materiel_manquant: c.materiel.oui ? (c.materiel.comment || 'Oui') : '',

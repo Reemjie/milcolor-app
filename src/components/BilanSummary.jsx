@@ -3,6 +3,7 @@ import {
   CHECK_ITEMS,
   avgScore,
   scoreColor,
+  scoreComment,
   isNewFormat,
   alertFlags,
 } from '../lib/bilan'
@@ -77,7 +78,7 @@ export function BilanDetail({ b }) {
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8, marginBottom: 12 }}>
         {SCORE_ITEMS.map(i => {
           const n = b.scores?.[i.key]
           return (
@@ -94,10 +95,22 @@ export function BilanDetail({ b }) {
         })}
       </div>
       {avg != null && (
-        <p style={{ textAlign: 'center', fontWeight: 800, color: scoreColor(avg), marginBottom: 16, fontFamily: 'Fredoka' }}>
+        <p style={{ textAlign: 'center', fontWeight: 800, color: scoreColor(avg), marginBottom: 12, fontFamily: 'Fredoka' }}>
           Moyenne {avg}/10
         </p>
       )}
+      {SCORE_ITEMS.map(i => {
+        const cmt = scoreComment(b.scores, i.key)
+        if (!cmt) return null
+        return (
+          <div key={`c-${i.key}`} style={{ marginBottom: 10 }}>
+            <div style={{ fontWeight: 700, fontSize: '0.78rem', marginBottom: 4, color: 'var(--text2)' }}>
+              {i.icon} {i.label} — {b.scores?.[i.key]}/10
+            </div>
+            <div style={box}>{cmt}</div>
+          </div>
+        )
+      })}
 
       {CHECK_ITEMS.map(item => {
         const v = b.checks?.[item.key]

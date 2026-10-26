@@ -7,6 +7,7 @@ import {
   CHECK_ITEMS,
   emptyScores,
   emptyChecks,
+  normalizeScores,
   checksComplete,
   legacyFromStructured,
   scoreColor,
@@ -44,9 +45,8 @@ export default function Bilan() {
       setActivites(data.activites_realisees || '')
       setNotesDirecteur(data.notes_directeur || '')
       if (data.scores && Object.keys(data.scores).length) {
-        setScores({ ...emptyScores(), ...data.scores })
+        setScores(normalizeScores(data.scores))
       } else {
-        // Ancien format texte → tenter d'extraire une note
         setScores(emptyScores())
       }
       if (data.checks && Object.keys(data.checks).length) {
@@ -68,6 +68,13 @@ export default function Bilan() {
     setScores(s => ({ ...s, [key]: n }))
   }
 
+  function setScoreComment(key, comment) {
+    setScores(s => ({
+      ...s,
+      comments: { ...(s.comments || {}), [key]: comment },
+    }))
+  }
+
   function setCheck(key, patch) {
     setChecks(c => ({ ...c, [key]: { ...c[key], ...patch } }))
   }
@@ -81,13 +88,14 @@ export default function Bilan() {
   async function save() {
     if (!canSave) return
     setSaving(true)
-    const legacy = legacyFromStructured({ scores, checks, activites_realisees: activites })
+    const scoresPayload = normalizeScores(scores)
+    const legacy = legacyFromStructured({ scores: scoresPayload, checks, activites_realisees: activites })
     const payload = {
       nom: nom.trim(),
       prenom: prenom.trim(),
       jour,
       tranche_age: tranche,
-      scores,
+      scores: scoresPayload,
       checks,
       activites_realisees: activites.trim(),
       ...legacy,
@@ -180,7 +188,7 @@ export default function Bilan() {
           </span>
         </div>
         <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 14 }}>
-          Un tap par ligne — notes + cases obligatoires.
+          Un tap par ligne — tu peux préciser juste en dessous.
         </p>
         {SCORE_ITEMS.map(item => (
           <div key={item.key} style={{ marginBottom: 16 }}>
@@ -209,6 +217,14 @@ export default function Bilan() {
                 )
               })}
             </div>
+            {typeof scores[item.key] === 'number' && (
+              <input
+                value={scores.comments?.[item.key] || ''}
+                onChange={e => setScoreComment(item.key, e.target.value)}
+                placeholder="Préciser…"
+                style={{ ...iStyle, marginTop: 8, fontSize: '0.82rem', padding: '8px 10px' }}
+              />
+            )}
           </div>
         ))}
       </section>
