@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
 import { BilanDetail, BilanListPreview } from '../components/BilanSummary'
 import { alertFlags } from '../lib/bilan'
+import { shouldShowBilanRappel, dismissBilanRappel } from '../lib/bilanRappel'
 
 export default function Accueil() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [alertesMateriel, setAlertesMateriel] = useState([])
   const [alertes, setAlertes] = useState([])
+  const [showBilanRappel, setShowBilanRappel] = useState(() => !isAdmin && shouldShowBilanRappel())
 
   useEffect(() => {
     async function fetchAlertes() {
@@ -33,7 +35,13 @@ export default function Accueil() {
     fetchNotifs()
     fetchAlertesMateriel()
     if (isAdmin) fetchBilans()
+    setShowBilanRappel(!isAdmin && shouldShowBilanRappel())
   }, [isAdmin])
+
+  function hideBilanRappel() {
+    dismissBilanRappel()
+    setShowBilanRappel(false)
+  }
 
   async function fetchBilans() {
     const { data } = await supabase.from('bilans').select('*').order('jour', { ascending: false }).order('created_at', { ascending: false }).limit(50)
@@ -88,6 +96,54 @@ export default function Accueil() {
         <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2, textTransform: 'capitalize' }}>{dateStr}</p>
       </div>
 
+      {/* Rappel bilan — animateurs, à partir de 15h */}
+      {showBilanRappel && (
+        <div style={{
+          marginBottom: 16, padding: 16, borderRadius: 16,
+          background: 'linear-gradient(135deg, #E8F4FF 0%, #FFF3EC 100%)',
+          border: '2px solid #118AB2',
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
+            <div>
+              <div style={{ fontFamily: 'Fredoka', fontWeight: 700, fontSize: '1.05rem', color: '#118AB2' }}>
+                📋 Bilan du jour
+              </div>
+              <p style={{ fontSize: '0.82rem', color: 'var(--text)', marginTop: 4, lineHeight: 1.4 }}>
+                3 notes + 4 cases · environ 1 minute
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={hideBilanRappel}
+              aria-label="Masquer"
+              style={{ background: 'white', border: '1.5px solid var(--border)', borderRadius: 8, width: 32, height: 32, fontWeight: 700, color: 'var(--text2)', flexShrink: 0 }}
+            >✕</button>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => navigate('/bilans/nouveau')}
+              style={{
+                flex: 1, padding: '12px', borderRadius: 12, border: 'none',
+                background: '#118AB2', color: 'white', fontWeight: 800, fontSize: '0.9rem',
+              }}
+            >
+              Remplir maintenant
+            </button>
+            <button
+              type="button"
+              onClick={hideBilanRappel}
+              style={{
+                padding: '12px 14px', borderRadius: 12,
+                border: '1.5px solid var(--border)', background: 'white',
+                fontWeight: 700, fontSize: '0.8rem', color: 'var(--text2)',
+              }}
+            >
+              Déjà fait
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Alertes chat urgent + notifs */}
       {alertes.length > 0 && (

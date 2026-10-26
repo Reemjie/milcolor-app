@@ -11,6 +11,7 @@ import {
   legacyFromStructured,
   scoreColor,
 } from '../lib/bilan'
+import { dismissBilanRappel } from '../lib/bilanRappel'
 
 const TRANCHES = ['3-5 ans', '6-11 ans', 'Mixte']
 const NOTES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -95,6 +96,7 @@ export default function Bilan() {
       await supabase.from('bilans').update(payload).eq('id', id)
     } else {
       await supabase.from('bilans').insert([payload])
+      dismissBilanRappel()
       await notifyTeam({
         titre: `📋 Bilan — ${prenom.trim()} ${nom.trim()}`,
         message: `Notes ${scores.ambiance}/${scores.activites}/${scores.deroulement} · ${jour}`,
