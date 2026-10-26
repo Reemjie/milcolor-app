@@ -256,7 +256,7 @@ export default function Bilan() {
 
       {(!activitesOk || !scoresOk || !checksOk) && (
         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#CC6600', fontWeight: 700, marginBottom: 10 }}>
-          Complete activités, notes et cases pour envoyer
+          Remplis activités, notes et cases pour envoyer
         </p>
       )}
 
