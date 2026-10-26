@@ -2,6 +2,8 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
+import { BilanDetail, BilanListPreview } from '../components/BilanSummary'
+import { alertFlags } from '../lib/bilan'
 
 export default function Accueil() {
   const { isAdmin } = useAuth()
@@ -187,9 +189,14 @@ export default function Accueil() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {bilans.slice(0, 5).map(b => (
+              {bilans.slice(0, 5).map(b => {
+                const flags = alertFlags(b)
+                return (
                 <div key={b.id} onClick={() => { setBilanOuvert(b); setNote(b.notes_directeur || '') }}
-                  style={{ background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)', cursor: 'pointer', border: b.notes_directeur ? '2px solid var(--green)' : '2px solid var(--border)' }}>
+                  style={{
+                    background: 'white', borderRadius: 14, padding: '14px 16px', boxShadow: 'var(--shadow)', cursor: 'pointer',
+                    border: flags.includes('incident') ? '2px solid #FF6B6B' : (b.notes_directeur ? '2px solid var(--green)' : '2px solid var(--border)'),
+                  }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                       <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--orange)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
@@ -207,9 +214,9 @@ export default function Accueil() {
                       <span style={{ color: 'var(--text2)', fontSize: '1rem' }}>›</span>
                     </div>
                   </div>
-                  {b.incidents && <p style={{ marginTop: 8, fontSize: '0.75rem', color: '#CC3333' }}>⚠️ {b.incidents.slice(0, 80)}{b.incidents.length > 80 ? '…' : ''}</p>}
+                  <BilanListPreview b={b} />
                 </div>
-              ))}
+              )})}
             </div>
           )}
           <button onClick={() => navigate('/bilans')} style={{ width: '100%', padding: '10px', borderRadius: 10, background: 'var(--bg)', border: '1.5px solid var(--border)', fontWeight: 700, fontSize: '0.82rem', color: 'var(--text2)', marginTop: 8 }}>
@@ -231,22 +238,7 @@ export default function Accueil() {
               📅 {new Date(bilanOuvert.jour + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} · {bilanOuvert.tranche_age}
             </p>
 
-            {[
-              { label: '🧩 Activités réalisées', val: bilanOuvert.activites_realisees },
-              { label: '👍 Appréciées / moins bien', val: bilanOuvert.activites_appreciees },
-              { label: '📦 Matériel manquant', val: bilanOuvert.materiel_manquant },
-              { label: '⚠️ Difficultés', val: bilanOuvert.difficultes },
-              { label: '🚨 Incidents', val: bilanOuvert.incidents },
-              { label: '😊 Ambiance', val: bilanOuvert.ambiance },
-              { label: '👁 Enfants à surveiller', val: bilanOuvert.enfants_surveiller },
-              { label: '💡 Suggestions activités', val: bilanOuvert.suggestions_activites },
-              { label: '📝 Autres remarques', val: bilanOuvert.autres_remarques },
-            ].filter(f => f.val).map(f => (
-              <div key={f.label} style={{ marginBottom: 14 }}>
-                <div style={{ fontWeight: 700, fontSize: '0.82rem', marginBottom: 4 }}>{f.label}</div>
-                <div style={{ fontSize: '0.85rem', lineHeight: 1.6, color: 'var(--text)', background: 'var(--bg)', borderRadius: 10, padding: '10px 12px', whiteSpace: 'pre-wrap' }}>{f.val}</div>
-              </div>
-            ))}
+            <BilanDetail b={bilanOuvert} />
 
             <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
               <label style={{ display: 'block', fontWeight: 700, fontSize: '0.85rem', marginBottom: 8 }}>✏️ Mes notes (bilan fin de semaine)</label>

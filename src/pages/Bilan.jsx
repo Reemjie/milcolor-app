@@ -1,175 +1,282 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 import { notifyTeam } from '../lib/notify'
-
-const SECTIONS = [
-  {
-    id: 'activites', icon: '🧩', label: 'Activités du jour', color: '#9B5DE5', bg: '#f0edf8',
-    fields: [
-      { key: 'activites_realisees', label: 'Activités réalisées', placeholder: 'Liste les activités faites aujourd\'hui…', multiline: true },
-      { key: 'activites_appreciees', label: 'Appréciées / moins bien passées', placeholder: 'Ce qui a bien marché, ce qui a moins bien fonctionné…', multiline: true },
-      { key: 'materiel_manquant', label: 'Matériel manquant ?', placeholder: 'Si oui, lequel…', multiline: false },
-    ]
-  },
-  {
-    id: 'incidents', icon: '⚠️', label: 'Problèmes / incidents', color: '#CC3333', bg: '#FFE8E8',
-    fields: [
-      { key: 'difficultes', label: 'Difficultés rencontrées', placeholder: 'Comportement, météo, logistique…', multiline: true },
-      { key: 'incidents', label: 'Incidents particuliers', placeholder: 'Blessures, conflits, situations à signaler…', multiline: true },
-    ]
-  },
-  {
-    id: 'groupe', icon: '😊', label: 'Vie du groupe', color: '#06D6A0', bg: '#E0FBF1',
-    fields: [
-      { key: 'ambiance', label: 'Ambiance générale du groupe', placeholder: 'Comment s\'est passée la journée globalement…', multiline: true },
-      { key: 'enfants_surveiller', label: 'Enfants à surveiller / remarques spécifiques', placeholder: 'Comportements particuliers, enfants à l\'œil…', multiline: true },
-    ]
-  },
-  {
-    id: 'suggestions', icon: '💡', label: 'Suggestions / idées', color: '#FF9F43', bg: '#FFF3E0',
-    fields: [
-      { key: 'suggestions_activites', label: 'Propositions d\'activités pour les prochains jours', placeholder: 'Projets d\'enfants entendus ou demandés…', multiline: true },
-      { key: 'autres_remarques', label: 'Autres remarques utiles', placeholder: 'Tout ce qui mérite d\'être transmis…', multiline: true },
-    ]
-  },
-]
+import {
+  SCORE_ITEMS,
+  CHECK_ITEMS,
+  emptyScores,
+  emptyChecks,
+  legacyFromStructured,
+  scoreColor,
+} from '../lib/bilan'
 
 const TRANCHES = ['3-5 ans', '6-11 ans', 'Mixte']
+const NOTES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 
 export default function Bilan() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { isAdmin } = useAuth()
   const isEdit = !!id
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({
-    nom: '', prenom: '', jour: new Date().toISOString().slice(0, 10), tranche_age: '3-5 ans',
-    activites_realisees: '', activites_appreciees: '', materiel_manquant: '',
-    difficultes: '', incidents: '', ambiance: '', enfants_surveiller: '',
-    suggestions_activites: '', autres_remarques: '',
-  })
+  const [nom, setNom] = useState('')
+  const [prenom, setPrenom] = useState('')
+  const [jour, setJour] = useState(new Date().toISOString().slice(0, 10))
+  const [tranche, setTranche] = useState('3-5 ans')
+  const [scores, setScores] = useState(emptyScores())
+  const [checks, setChecks] = useState(emptyChecks())
+  const [activites, setActivites] = useState('')
+  const [notesDirecteur, setNotesDirecteur] = useState('')
 
   useEffect(() => { if (isEdit) fetchBilan() }, [id])
 
   async function fetchBilan() {
     setLoading(true)
     const { data } = await supabase.from('bilans').select('*').eq('id', id).single()
-    if (data) setForm(data)
+    if (data) {
+      setNom(data.nom || '')
+      setPrenom(data.prenom || '')
+      setJour(data.jour || new Date().toISOString().slice(0, 10))
+      setTranche(data.tranche_age || '3-5 ans')
+      setActivites(data.activites_realisees || '')
+      setNotesDirecteur(data.notes_directeur || '')
+      if (data.scores && Object.keys(data.scores).length) {
+        setScores({ ...emptyScores(), ...data.scores })
+      } else {
+        // Ancien format texte → tenter d'extraire une note
+        setScores(emptyScores())
+      }
+      if (data.checks && Object.keys(data.checks).length) {
+        setChecks({ ...emptyChecks(), ...data.checks })
+      } else {
+        // Migration douce depuis les anciennes colonnes
+        setChecks({
+          incident: { oui: !!data.incidents, comment: data.incidents || '' },
+          materiel: { oui: !!data.materiel_manquant, comment: data.materiel_manquant || '' },
+          surveiller: { oui: !!data.enfants_surveiller, comment: data.enfants_surveiller || '' },
+          suggestion: { oui: !!data.suggestions_activites, comment: data.suggestions_activites || '' },
+        })
+      }
+    }
     setLoading(false)
   }
 
-  function set(key, val) { setForm(f => ({ ...f, [key]: val })) }
+  function setScore(key, n) {
+    setScores(s => ({ ...s, [key]: n }))
+  }
+
+  function setCheck(key, patch) {
+    setChecks(c => ({ ...c, [key]: { ...c[key], ...patch } }))
+  }
+
+  const scoresOk = SCORE_ITEMS.every(i => typeof scores[i.key] === 'number')
+  const canSave = nom.trim() && prenom.trim() && scoresOk && !saving
 
   async function save() {
-    if (!form.nom || !form.prenom) return
+    if (!canSave) return
     setSaving(true)
+    const legacy = legacyFromStructured({ scores, checks, activites_realisees: activites })
+    const payload = {
+      nom: nom.trim(),
+      prenom: prenom.trim(),
+      jour,
+      tranche_age: tranche,
+      scores,
+      checks,
+      activites_realisees: activites.trim(),
+      ...legacy,
+      ...(isEdit ? { notes_directeur: notesDirecteur } : {}),
+    }
     if (isEdit) {
-      await supabase.from('bilans').update(form).eq('id', id)
+      await supabase.from('bilans').update(payload).eq('id', id)
     } else {
-      await supabase.from('bilans').insert([form])
-    await notifyTeam({ titre: `📋 Bilan — ${form.prenom} ${form.nom}`, message: `Bilan du ${form.jour} soumis`, type: 'info', lien: '/bilans' })
+      await supabase.from('bilans').insert([payload])
+      await notifyTeam({
+        titre: `📋 Bilan — ${prenom.trim()} ${nom.trim()}`,
+        message: `Notes ${scores.ambiance}/${scores.activites}/${scores.deroulement} · ${jour}`,
+        type: 'info',
+        lien: '/bilans',
+      })
     }
     setSaving(false)
-    navigate('/chat')
+    navigate('/bilans')
   }
 
   if (loading) return <div className="spinner" style={{ marginTop: 80 }} />
 
   return (
     <div className="page-enter" style={{ padding: '20px 16px', paddingBottom: 100 }}>
-      {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <button onClick={() => navigate(-1)} style={{ width: 40, height: 40, borderRadius: 12, background: 'white', border: '1.5px solid var(--border)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>←</button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+        <button type="button" onClick={() => navigate(-1)} style={backBtn}>←</button>
         <div>
-          <h1 style={{ fontSize: '1.4rem' }}>📋 {isEdit ? 'Modifier le' : 'Nouveau'} bilan</h1>
-          <p style={{ color: 'var(--text2)', fontSize: '0.82rem', marginTop: 2 }}>Bilan de fin de journée</p>
+          <h1 style={{ fontSize: '1.4rem' }}>{isEdit ? 'Modifier le bilan' : 'Bilan du jour'}</h1>
+          <p style={{ color: 'var(--text2)', fontSize: '0.82rem', marginTop: 2 }}>
+            3 notes + 4 cases · ~1 minute
+          </p>
         </div>
       </div>
 
-      {/* Infos générales */}
-      <div className="card" style={{ padding: '16px', marginBottom: 16 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: '1.2rem' }}>👤</span>
-          <span style={{ fontFamily: 'Fredoka', fontSize: '1rem', fontWeight: 600, color: '#118AB2' }}>Informations</span>
-        </div>
+      {/* Infos */}
+      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#118AB2', marginBottom: 12 }}>👤 Toi & le groupe</div>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
           <div>
-            <label style={lStyle}>Nom *</label>
-            <input value={form.nom} onChange={e => set('nom', e.target.value)} placeholder="Dupont" style={iStyle} />
+            <label style={lStyle}>Prénom *</label>
+            <input value={prenom} onChange={e => setPrenom(e.target.value)} placeholder="Emma" style={iStyle} />
           </div>
           <div>
-            <label style={lStyle}>Prénom *</label>
-            <input value={form.prenom} onChange={e => set('prenom', e.target.value)} placeholder="Emma" style={iStyle} />
+            <label style={lStyle}>Nom *</label>
+            <input value={nom} onChange={e => setNom(e.target.value)} placeholder="Dupont" style={iStyle} />
           </div>
         </div>
         <div style={{ marginBottom: 12 }}>
           <label style={lStyle}>Jour</label>
-          <input type="date" value={form.jour} onChange={e => set('jour', e.target.value)} style={iStyle} />
+          <input type="date" value={jour} onChange={e => setJour(e.target.value)} style={iStyle} />
         </div>
-        <div>
-          <label style={lStyle}>Tranche d'âge</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            {TRANCHES.map(t => (
-              <button key={t} onClick={() => set('tranche_age', t)} style={{
-                flex: 1, padding: '9px 4px', borderRadius: 10,
-                border: `2px solid ${form.tranche_age === t ? '#118AB2' : 'var(--border)'}`,
-                background: form.tranche_age === t ? '#E8F4FF' : 'white',
-                fontWeight: 700, fontSize: '0.78rem',
-                color: form.tranche_age === t ? '#118AB2' : 'var(--text)',
-              }}>{t}</button>
-            ))}
-          </div>
+        <label style={lStyle}>Tranche d'âge</label>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {TRANCHES.map(t => (
+            <button key={t} type="button" onClick={() => setTranche(t)} style={{
+              flex: 1, padding: '9px 4px', borderRadius: 10,
+              border: `2px solid ${tranche === t ? '#118AB2' : 'var(--border)'}`,
+              background: tranche === t ? '#E8F4FF' : 'white',
+              fontWeight: 700, fontSize: '0.78rem',
+              color: tranche === t ? '#118AB2' : 'var(--text)',
+            }}>{t}</button>
+          ))}
         </div>
-      </div>
+      </section>
 
-      {/* Sections */}
-      {SECTIONS.map(section => (
-        <div key={section.id} className="card" style={{ marginBottom: 16, overflow: 'hidden' }}>
-          <div style={{ background: section.bg, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ fontSize: '1.2rem' }}>{section.icon}</span>
-            <span style={{ fontFamily: 'Fredoka', fontSize: '1rem', fontWeight: 600, color: section.color }}>{section.label}</span>
+      {/* Notes /10 */}
+      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+          <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#FF6B35' }}>⭐ Notes sur 10</div>
+          <span style={{ fontSize: '0.72rem', color: scoresOk ? '#0A7A5A' : 'var(--text2)', fontWeight: 700 }}>
+            {SCORE_ITEMS.filter(i => scores[i.key] != null).length}/3
+          </span>
+        </div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 14 }}>
+          Un tap par ligne — obligatoire pour envoyer.
+        </p>
+        {SCORE_ITEMS.map(item => (
+          <div key={item.key} style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
+              <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{item.icon} {item.label}</span>
+              <span style={{ fontWeight: 800, fontSize: '1rem', color: scoreColor(scores[item.key]), fontFamily: 'Fredoka' }}>
+                {scores[item.key] != null ? scores[item.key] : '—'}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap' }}>
+              {NOTES.map(n => {
+                const active = scores[item.key] === n
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setScore(item.key, n)}
+                    style={{
+                      flex: 1, minWidth: 0, padding: '10px 0', borderRadius: 8,
+                      border: `2px solid ${active ? scoreColor(n) : 'var(--border)'}`,
+                      background: active ? scoreColor(n) : 'white',
+                      color: active ? 'white' : 'var(--text2)',
+                      fontWeight: 800, fontSize: '0.78rem',
+                    }}
+                  >{n}</button>
+                )
+              })}
+            </div>
           </div>
-          <div style={{ padding: '14px 16px' }}>
-            {section.fields.map(field => (
-              <div key={field.key} style={{ marginBottom: 12 }}>
-                <label style={lStyle}>{field.label}</label>
-                {field.multiline ? (
-                  <textarea
-                    value={form[field.key]}
-                    onChange={e => set(field.key, e.target.value)}
-                    placeholder={field.placeholder}
-                    rows={3}
-                    style={{ ...iStyle, resize: 'vertical', marginBottom: 0 }}
-                  />
-                ) : (
-                  <input
-                    value={form[field.key]}
-                    onChange={e => set(field.key, e.target.value)}
-                    placeholder={field.placeholder}
-                    style={{ ...iStyle, marginBottom: 0 }}
-                  />
-                )}
+        ))}
+      </section>
+
+      {/* Oui / Non */}
+      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#9B5DE5', marginBottom: 6 }}>✅ Points à signaler</div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 14 }}>
+          Par défaut : Non. Si Oui, un commentaire s’ouvre.
+        </p>
+        {CHECK_ITEMS.map(item => {
+          const val = checks[item.key] || { oui: false, comment: '' }
+          return (
+            <div key={item.key} style={{
+              marginBottom: 12, padding: 12, borderRadius: 12,
+              background: val.oui ? '#FFF9F0' : 'var(--bg)',
+              border: `1.5px solid ${val.oui ? item.yesColor : 'var(--border)'}`,
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+                <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{item.icon} {item.label}</span>
+                <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                  <button type="button" onClick={() => setCheck(item.key, { oui: false, comment: '' })} style={ynBtn(!val.oui, false)}>Non</button>
+                  <button type="button" onClick={() => setCheck(item.key, { oui: true })} style={ynBtn(val.oui, true, item.yesColor)}>Oui</button>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      ))}
+              {val.oui && (
+                <input
+                  value={val.comment}
+                  onChange={e => setCheck(item.key, { comment: e.target.value })}
+                  placeholder={item.placeholder}
+                  style={{ ...iStyle, marginTop: 10, background: 'white' }}
+                  autoFocus
+                />
+              )}
+            </div>
+          )
+        })}
+      </section>
 
-      {/* Save button */}
+      {/* Activités optionnel */}
+      <section className="card" style={{ padding: 16, marginBottom: 14 }}>
+        <div style={{ fontFamily: 'Fredoka', fontWeight: 600, color: '#06D6A0', marginBottom: 6 }}>🧩 Activités (optionnel)</div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 10 }}>Liste courte si tu veux.</p>
+        <textarea
+          value={activites}
+          onChange={e => setActivites(e.target.value)}
+          placeholder="ex: parcours moteur, peinture, chasse au trésor…"
+          rows={2}
+          style={{ ...iStyle, resize: 'vertical' }}
+        />
+      </section>
+
+      {!scoresOk && (
+        <p style={{ textAlign: 'center', fontSize: '0.8rem', color: '#CC6600', fontWeight: 700, marginBottom: 10 }}>
+          Mets les 3 notes pour pouvoir envoyer
+        </p>
+      )}
+
       <button
+        type="button"
         className="btn btn-primary"
-        style={{ width: '100%', padding: '15px', fontSize: '1rem', borderRadius: 14, opacity: (!form.nom || !form.prenom || saving) ? 0.5 : 1 }}
+        style={{ width: '100%', padding: '15px', fontSize: '1rem', borderRadius: 14, opacity: canSave ? 1 : 0.5 }}
         onClick={save}
-        disabled={!form.nom || !form.prenom || saving}
+        disabled={!canSave}
       >
-        {saving ? '⏳ Enregistrement…' : `💾 ${isEdit ? 'Enregistrer' : 'Soumettre le bilan'}`}
+        {saving ? 'Enregistrement…' : (isEdit ? 'Enregistrer' : 'Envoyer le bilan')}
       </button>
     </div>
   )
 }
 
+function ynBtn(active, isYes, yesColor = '#CC3333') {
+  return {
+    padding: '8px 14px',
+    borderRadius: 10,
+    fontWeight: 800,
+    fontSize: '0.8rem',
+    border: `2px solid ${active ? (isYes ? yesColor : '#0A7A5A') : 'var(--border)'}`,
+    background: active ? (isYes ? yesColor : '#0A7A5A') : 'white',
+    color: active ? 'white' : 'var(--text2)',
+  }
+}
+
+const backBtn = {
+  width: 40, height: 40, borderRadius: 12, background: 'white',
+  border: '1.5px solid var(--border)', display: 'flex', alignItems: 'center',
+  justifyContent: 'center', fontSize: '1.1rem',
+}
 const lStyle = { display: 'block', marginBottom: 5, fontWeight: 700, fontSize: '0.82rem' }
-const iStyle = { width: '100%', padding: '10px 12px', borderRadius: 10, border: '2px solid var(--border)', fontSize: '0.88rem', background: 'var(--bg)', color: 'var(--text)', marginBottom: 0 }
+const iStyle = {
+  width: '100%', padding: '10px 12px', borderRadius: 10,
+  border: '2px solid var(--border)', fontSize: '0.88rem',
+  background: 'var(--bg)', color: 'var(--text)', marginBottom: 0,
+}

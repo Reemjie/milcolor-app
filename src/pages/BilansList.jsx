@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
+import { BilanListPreview } from '../components/BilanSummary'
+import { alertFlags } from '../lib/bilan'
 
 export default function BilansList() {
   const { isAdmin } = useAuth()
@@ -102,8 +104,13 @@ export default function BilansList() {
             <div style={{ height: 1, flex: 1, background: 'var(--border)' }} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            {items.map(b => (
-              <div key={b.id} className="card" style={{ padding: '14px 16px', cursor: 'pointer' }} onClick={() => navigate(`/bilans/${b.id}`)}>
+            {items.map(b => {
+              const flags = alertFlags(b)
+              return (
+              <div key={b.id} className="card" style={{
+                padding: '14px 16px', cursor: 'pointer',
+                border: flags.includes('incident') ? '2px solid #FF6B6B' : undefined,
+              }} onClick={() => navigate(`/bilans/${b.id}`)}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
@@ -115,14 +122,7 @@ export default function BilansList() {
                         <span className="tag" style={{ background: '#f0edf8', color: '#764ba2', fontSize: '0.68rem' }}>{b.tranche_age}</span>
                       </div>
                     </div>
-                    {b.activites_realisees && (
-                      <p style={{ fontSize: '0.78rem', color: 'var(--text2)', lineHeight: 1.4, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
-                        🧩 {b.activites_realisees}
-                      </p>
-                    )}
-                    {b.incidents && (
-                      <p style={{ fontSize: '0.75rem', color: '#CC3333', marginTop: 4 }}>⚠️ {b.incidents.slice(0, 60)}{b.incidents.length > 60 ? '…' : ''}</p>
-                    )}
+                    <BilanListPreview b={b} />
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
                     {isAdmin && (
@@ -131,7 +131,7 @@ export default function BilansList() {
                   </div>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         </div>
       ))}

@@ -1,0 +1,80 @@
+/** Schéma du bilan rapide (notes /10 + oui/non). */
+
+export const SCORE_ITEMS = [
+  { key: 'ambiance', label: 'Ambiance du groupe', icon: '😊' },
+  { key: 'activites', label: 'Activités', icon: '🧩' },
+  { key: 'deroulement', label: 'Déroulement de la journée', icon: '⏱' },
+]
+
+export const CHECK_ITEMS = [
+  { key: 'incident', label: 'Incident à signaler ?', icon: '⚠️', yesColor: '#CC3333', placeholder: 'Que s’est-il passé ?' },
+  { key: 'materiel', label: 'Matériel manquant ?', icon: '📦', yesColor: '#CC6600', placeholder: 'Quoi / combien ?' },
+  { key: 'surveiller', label: 'Enfant(s) à surveiller ?', icon: '👁', yesColor: '#118AB2', placeholder: 'Qui / pourquoi ?' },
+  { key: 'suggestion', label: 'Idée pour demain ?', icon: '💡', yesColor: '#9B5DE5', placeholder: 'Ta proposition…' },
+]
+
+export function emptyScores() {
+  return { ambiance: null, activites: null, deroulement: null }
+}
+
+export function emptyChecks() {
+  return {
+    incident: { oui: false, comment: '' },
+    materiel: { oui: false, comment: '' },
+    surveiller: { oui: false, comment: '' },
+    suggestion: { oui: false, comment: '' },
+  }
+}
+
+export function avgScore(scores) {
+  const vals = SCORE_ITEMS.map(i => scores?.[i.key]).filter(v => typeof v === 'number')
+  if (!vals.length) return null
+  return Math.round((vals.reduce((a, b) => a + b, 0) / vals.length) * 10) / 10
+}
+
+export function scoreColor(n) {
+  if (n == null) return 'var(--text2)'
+  if (n >= 8) return '#0A7A5A'
+  if (n >= 5) return '#CC6600'
+  return '#CC3333'
+}
+
+/** Remplit les anciennes colonnes texte pour compat liste / recherche. */
+export function legacyFromStructured({ scores, checks, activites_realisees }) {
+  const c = { ...emptyChecks(), ...(checks || {}) }
+  Object.keys(c).forEach(k => {
+    c[k] = { oui: !!c[k]?.oui, comment: c[k]?.comment || '' }
+  })
+  return {
+    ambiance: scores?.ambiance != null ? `${scores.ambiance}/10` : '',
+    activites_appreciees: scores?.activites != null ? `${scores.activites}/10` : '',
+    difficultes: scores?.deroulement != null ? `${scores.deroulement}/10` : '',
+    activites_realisees: activites_realisees || '',
+    incidents: c.incident.oui ? (c.incident.comment || 'Oui') : '',
+    materiel_manquant: c.materiel.oui ? (c.materiel.comment || 'Oui') : '',
+    enfants_surveiller: c.surveiller.oui ? (c.surveiller.comment || 'Oui') : '',
+    suggestions_activites: c.suggestion.oui ? (c.suggestion.comment || 'Oui') : '',
+    autres_remarques: '',
+  }
+}
+
+export function isNewFormat(b) {
+  return !!(b?.scores && Object.keys(b.scores).length) || !!(b?.checks && Object.keys(b.checks).length)
+}
+
+export function alertFlags(b) {
+  const flags = []
+  if (isNewFormat(b)) {
+    const c = b.checks || {}
+    if (c.incident?.oui) flags.push('incident')
+    if (c.materiel?.oui) flags.push('materiel')
+    if (c.surveiller?.oui) flags.push('surveiller')
+    const avg = avgScore(b.scores)
+    if (avg != null && avg <= 4) flags.push('score_bas')
+  } else {
+    if (b.incidents) flags.push('incident')
+    if (b.materiel_manquant) flags.push('materiel')
+    if (b.enfants_surveiller) flags.push('surveiller')
+  }
+  return flags
+}
