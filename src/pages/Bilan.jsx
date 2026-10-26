@@ -6,6 +6,7 @@ import {
   SCORE_ITEMS,
   CHECK_ITEMS,
   emptyScores,
+  emptyScoreComments,
   emptyChecks,
   normalizeScores,
   checksComplete,
@@ -27,7 +28,11 @@ export default function Bilan() {
   const [prenom, setPrenom] = useState('')
   const [jour, setJour] = useState(new Date().toISOString().slice(0, 10))
   const [tranche, setTranche] = useState('3-5 ans')
-  const [scores, setScores] = useState(emptyScores())
+  const [scores, setScores] = useState(() => {
+    const s = emptyScores()
+    return { ambiance: s.ambiance, activites: s.activites, deroulement: s.deroulement }
+  })
+  const [scoreComments, setScoreComments] = useState(emptyScoreComments)
   const [checks, setChecks] = useState(emptyChecks())
   const [activites, setActivites] = useState('')
   const [notesDirecteur, setNotesDirecteur] = useState('')
@@ -45,14 +50,16 @@ export default function Bilan() {
       setActivites(data.activites_realisees || '')
       setNotesDirecteur(data.notes_directeur || '')
       if (data.scores && Object.keys(data.scores).length) {
-        setScores(normalizeScores(data.scores))
+        const n = normalizeScores(data.scores)
+        setScores({ ambiance: n.ambiance, activites: n.activites, deroulement: n.deroulement })
+        setScoreComments({ ...emptyScoreComments(), ...n.comments })
       } else {
-        setScores(emptyScores())
+        setScores({ ambiance: null, activites: null, deroulement: null })
+        setScoreComments(emptyScoreComments())
       }
       if (data.checks && Object.keys(data.checks).length) {
         setChecks({ ...emptyChecks(), ...data.checks })
       } else {
-        // Migration douce depuis les anciennes colonnes
         setChecks({
           incident: { oui: !!data.incidents, comment: data.incidents || '' },
           materiel: { oui: !!data.materiel_manquant, comment: data.materiel_manquant || '' },
@@ -68,13 +75,6 @@ export default function Bilan() {
     setScores(s => ({ ...s, [key]: n }))
   }
 
-  function setScoreComment(key, comment) {
-    setScores(s => ({
-      ...s,
-      comments: { ...(s.comments || {}), [key]: comment },
-    }))
-  }
-
   function setCheck(key, patch) {
     setChecks(c => ({ ...c, [key]: { ...c[key], ...patch } }))
   }
@@ -88,7 +88,7 @@ export default function Bilan() {
   async function save() {
     if (!canSave) return
     setSaving(true)
-    const scoresPayload = normalizeScores(scores)
+    const scoresPayload = normalizeScores({ ...scores, comments: scoreComments })
     const legacy = legacyFromStructured({ scores: scoresPayload, checks, activites_realisees: activites })
     const payload = {
       nom: nom.trim(),
@@ -217,14 +217,13 @@ export default function Bilan() {
                 )
               })}
             </div>
-            {typeof scores[item.key] === 'number' && (
-              <input
-                value={scores.comments?.[item.key] || ''}
-                onChange={e => setScoreComment(item.key, e.target.value)}
-                placeholder="Préciser…"
-                style={{ ...iStyle, marginTop: 8, fontSize: '0.82rem', padding: '8px 10px' }}
-              />
-            )}
+            <textarea
+              value={scoreComments[item.key] || ''}
+              onChange={e => setScoreComments(c => ({ ...c, [item.key]: e.target.value }))}
+              placeholder="Préciser…"
+              rows={2}
+              style={{ ...iStyle, marginTop: 8, fontSize: '0.82rem', padding: '8px 10px', resize: 'vertical' }}
+            />
           </div>
         ))}
       </section>
