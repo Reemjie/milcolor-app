@@ -10,7 +10,7 @@ export const CHECK_ITEMS = [
   { key: 'incident', label: 'Incident à signaler ?', icon: '⚠️', yesColor: '#CC3333', placeholder: 'Que s’est-il passé ?' },
   { key: 'materiel', label: 'Matériel manquant ?', icon: '📦', yesColor: '#CC6600', placeholder: 'Quoi / combien ?' },
   { key: 'surveiller', label: 'Enfant(s) à surveiller ?', icon: '👁', yesColor: '#118AB2', placeholder: 'Qui / pourquoi ?' },
-  { key: 'suggestion', label: 'Idée pour demain ?', icon: '💡', yesColor: '#9B5DE5', placeholder: 'Ta proposition…' },
+  { key: 'suggestion', label: 'Idées d’enfants à mettre en place cette semaine ?', icon: '💡', yesColor: '#9B5DE5', placeholder: 'Jeux, activités manuelles…' },
 ]
 
 export function emptyScoreComments() {
