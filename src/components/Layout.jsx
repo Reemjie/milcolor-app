@@ -3,13 +3,14 @@ import { useAuth } from '../lib/auth'
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { getIdentity, displayName } from '../lib/identity'
+import { countUnreadLocal } from '../lib/notifLocal'
 import IdentityGate from './IdentityGate'
 
 const NAV = [
   { to: '/accueil',   icon: '🏠', label: 'Accueil'   },
   { to: '/infos-jour', icon: '📋', label: 'Infos jour' },
   { to: '/documents', icon: '📁', label: 'Documents' },
-  { to: '/chat',      icon: '💬', label: 'Alertes'   },
+  { to: '/bilans',    icon: '✍️', label: 'Bilans'    },
 ]
 
 export default function Layout() {
@@ -22,14 +23,18 @@ export default function Layout() {
 
   useEffect(() => {
     fetchUnread()
+    const onLocal = () => fetchUnread()
+    window.addEventListener('milcolor-notifs-read', onLocal)
     const channel = supabase
       .channel('notifs_badge')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'notifications' }, () => fetchUnread())
       .subscribe()
-    return () => supabase.removeChannel(channel)
+    return () => {
+      window.removeEventListener('milcolor-notifs-read', onLocal)
+      supabase.removeChannel(channel)
+    }
   }, [])
 
-  // Re-check identity when returning to app (autre animateur sur tablette)
   useEffect(() => {
     const cur = getIdentity()
     setIdentityState(cur)
@@ -37,11 +42,12 @@ export default function Layout() {
   }, [location.pathname])
 
   async function fetchUnread() {
-    const { count } = await supabase
+    const { data } = await supabase
       .from('notifications')
-      .select('*', { count: 'exact', head: true })
-      .eq('lue', false)
-    setUnread(count || 0)
+      .select('id')
+      .order('created_at', { ascending: false })
+      .limit(100)
+    setUnread(countUnreadLocal(data || []))
   }
 
   const name = displayName(identity)

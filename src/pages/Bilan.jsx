@@ -45,6 +45,7 @@ export default function Bilan() {
   const [notesDirecteur, setNotesDirecteur] = useState('')
   const [vu, setVu] = useState(false)
   const [vuAt, setVuAt] = useState(null)
+  const [sentOk, setSentOk] = useState(false)
 
   useEffect(() => { if (isEdit) fetchBilan() }, [id])
 
@@ -123,21 +124,57 @@ export default function Bilan() {
     setIdentity({ prenom: prenom.trim(), nom: nom.trim() })
     if (isEdit) {
       await supabase.from('bilans').update(payload).eq('id', id)
-    } else {
-      await supabase.from('bilans').insert([payload])
-      dismissBilanRappel()
-      await notifyTeam({
-        titre: `📋 Bilan — ${prenom.trim()} ${nom.trim()}`,
-        message: `Notes ${scores.ambiance}/${scores.activites}/${scores.deroulement} · ${jour}`,
-        type: 'info',
-        lien: '/bilans',
-      })
+      setSaving(false)
+      navigate('/bilans')
+      return
     }
+    await supabase.from('bilans').insert([payload])
+    dismissBilanRappel()
+    await notifyTeam({
+      titre: `📋 Bilan — ${prenom.trim()} ${nom.trim()}`,
+      message: `Notes ${scores.ambiance}/${scores.activites}/${scores.deroulement} · ${jour}`,
+      type: 'info',
+      lien: '/bilans',
+    })
     setSaving(false)
-    navigate('/bilans')
+    setSentOk(true)
   }
 
   if (loading) return <div className="spinner" style={{ marginTop: 80 }} />
+
+  if (sentOk) {
+    return (
+      <div className="page-enter" style={{ padding: '40px 24px', textAlign: 'center', paddingBottom: 100 }}>
+        <div style={{ fontSize: '3.5rem', marginBottom: 12 }}>✅</div>
+        <h1 style={{ fontSize: '1.5rem', marginBottom: 8 }}>Bilan envoyé</h1>
+        <p style={{ color: 'var(--text2)', fontSize: '0.9rem', lineHeight: 1.5, marginBottom: 8 }}>
+          Merci {prenom} — le directeur pourra le lire.
+        </p>
+        <p style={{ color: 'var(--text2)', fontSize: '0.82rem', marginBottom: 28 }}>
+          Notes {scores.ambiance}/{scores.activites}/{scores.deroulement}
+        </p>
+        <button
+          type="button"
+          className="btn btn-primary"
+          style={{ width: '100%', maxWidth: 320, padding: 14, borderRadius: 14 }}
+          onClick={() => navigate('/accueil')}
+        >
+          Retour à l’accueil
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate('/bilans')}
+          style={{
+            display: 'block', width: '100%', maxWidth: 320, margin: '12px auto 0',
+            padding: 12, borderRadius: 12, border: '1.5px solid var(--border)',
+            background: 'white', fontWeight: 700, color: 'var(--text2)',
+          }}
+        >
+          Voir les bilans
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="page-enter" style={{ padding: '20px 16px', paddingBottom: 100 }}>

@@ -10,7 +10,6 @@ import SessionEnCours from './pages/SessionEnCours'
 import BanqueAnimations from './pages/BanqueAnimations'
 import ActiviteForm from './pages/ActiviteForm'
 import AnimationsRapides from './pages/AnimationsRapides'
-import Chat from './pages/Chat'
 import Documents from './pages/Documents'
 import Urgences from './pages/Urgences'
 import Materiel from './pages/Materiel'
@@ -68,7 +67,7 @@ export default function App() {
         <Route path="banque/nouvelle" element={<ActiviteForm />} />
         <Route path="banque/:id" element={<ActiviteForm />} />
         <Route path="rapides" element={<AnimationsRapides />} />
-        <Route path="chat" element={<Chat />} />
+        <Route path="chat" element={<Navigate to="/accueil" replace />} />
         <Route path="documents" element={<Documents />} />
         <Route path="urgences" element={<Urgences />} />
         <Route path="materiel" element={<Materiel />} />

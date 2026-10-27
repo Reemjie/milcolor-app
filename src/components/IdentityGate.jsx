@@ -40,7 +40,7 @@ export default function IdentityGate({ open, onClose, onSaved, canCancel = true 
         <div style={{ fontSize: '2.4rem', textAlign: 'center', marginBottom: 8 }}>👋</div>
         <h2 style={{ textAlign: 'center', fontSize: '1.25rem', marginBottom: 6 }}>Qui es-tu ?</h2>
         <p style={{ textAlign: 'center', color: 'var(--text2)', fontSize: '0.82rem', marginBottom: 20, lineHeight: 1.4 }}>
-          Ton prénom sert pour le chat, les bilans et les infos du jour.
+          Ton prénom sert pour les bilans et les infos du jour.
         </p>
         <label style={label}>Prénom *</label>
         <input

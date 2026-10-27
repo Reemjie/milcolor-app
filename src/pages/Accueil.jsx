@@ -5,15 +5,15 @@ import { supabase } from '../lib/supabase'
 import { BilanDetail, BilanListPreview, BilanVuBadge } from '../components/BilanSummary'
 import BilanJourDirecteur from '../components/BilanJourDirecteur'
 import { alertFlags, setBilanVu } from '../lib/bilan'
-import { shouldShowBilanRappel, dismissBilanRappel } from '../lib/bilanRappel'
+import { shouldShowBilanRappel, snoozeBilanRappel } from '../lib/bilanRappel'
+import { withLocalRead } from '../lib/notifLocal'
 
 export default function Accueil() {
   const { isAdmin } = useAuth()
   const navigate = useNavigate()
   const [alertesMateriel, setAlertesMateriel] = useState([])
   const [alertes, setAlertes] = useState([])
-  const [showBilanRappel, setShowBilanRappel] = useState(() => !isAdmin && shouldShowBilanRappel())
-  const [notifs, setNotifs] = useState([])
+  const [showBilanRappel, setShowBilanRappel] = useState(false)
   const [bilans, setBilans] = useState([])
   const [bilanOuvert, setBilanOuvert] = useState(null)
   const [note, setNote] = useState('')
@@ -21,26 +21,29 @@ export default function Accueil() {
 
   useEffect(() => {
     async function fetchAlertes() {
-      const { data: msgs } = await supabase.from('remarques').select('*').eq('categorie', 'urgent').order('created_at', { ascending: false }).limit(5)
-      const { data: notifsData } = await supabase.from('notifications').select('*').eq('lue', false).order('created_at', { ascending: false }).limit(3)
-      const all = [
-        ...(msgs || []).map(m => ({ ...m, _type: 'chat' })),
-        ...(notifsData || []).map(n => ({ ...n, _type: 'notif' })),
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      setAlertes(all)
+      const { data: notifsData } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(8)
+      const unread = withLocalRead(notifsData || []).filter(n => !n.lue_locale).slice(0, 3)
+      setAlertes(unread)
     }
     fetchAlertes()
   }, [])
 
   useEffect(() => {
-    fetchNotifs()
     fetchAlertesMateriel()
     if (isAdmin) fetchBilans()
-    setShowBilanRappel(!isAdmin && shouldShowBilanRappel())
+    if (!isAdmin) {
+      shouldShowBilanRappel(supabase).then(show => setShowBilanRappel(show))
+    } else {
+      setShowBilanRappel(false)
+    }
   }, [isAdmin])
 
-  function hideBilanRappel() {
-    dismissBilanRappel()
+  function snoozeRappel() {
+    snoozeBilanRappel()
     setShowBilanRappel(false)
   }
 
@@ -71,11 +74,6 @@ export default function Accueil() {
     fetchBilans()
   }
 
-  async function fetchNotifs() {
-    const { data } = await supabase.from('notifications').select('*').eq('lue', false).order('created_at', { ascending: false }).limit(3)
-    setNotifs(data || [])
-  }
-
   async function fetchAlertesMateriel() {
     const { data } = await supabase.from('materiel').select('*').eq('statut', 'alerte').order('created_at', { ascending: false }).limit(2)
     setAlertesMateriel(data || [])
@@ -104,28 +102,20 @@ export default function Accueil() {
         <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2, textTransform: 'capitalize' }}>{dateStr}</p>
       </div>
 
-      {/* Rappel bilan — animateurs, à partir de 15h */}
+      {/* Rappel bilan — disparaît seulement après envoi (ou snooze session) */}
       {showBilanRappel && (
         <div style={{
           marginBottom: 16, padding: 16, borderRadius: 16,
           background: 'linear-gradient(135deg, #E8F4FF 0%, #FFF3EC 100%)',
           border: '2px solid #118AB2',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 10 }}>
-            <div>
-              <div style={{ fontFamily: 'Fredoka', fontWeight: 700, fontSize: '1.05rem', color: '#118AB2' }}>
-                📋 Bilan du jour
-              </div>
-              <p style={{ fontSize: '0.82rem', color: 'var(--text)', marginTop: 4, lineHeight: 1.4 }}>
-                Activités + notes + cases · environ 1 minute
-              </p>
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ fontFamily: 'Fredoka', fontWeight: 700, fontSize: '1.05rem', color: '#118AB2' }}>
+              📋 Bilan du jour
             </div>
-            <button
-              type="button"
-              onClick={hideBilanRappel}
-              aria-label="Masquer"
-              style={{ background: 'white', border: '1.5px solid var(--border)', borderRadius: 8, width: 32, height: 32, fontWeight: 700, color: 'var(--text2)', flexShrink: 0 }}
-            >✕</button>
+            <p style={{ fontSize: '0.82rem', color: 'var(--text)', marginTop: 4, lineHeight: 1.4 }}>
+              Pas encore envoyé · ~1 minute
+            </p>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button
@@ -140,40 +130,38 @@ export default function Accueil() {
             </button>
             <button
               type="button"
-              onClick={hideBilanRappel}
+              onClick={snoozeRappel}
               style={{
                 padding: '12px 14px', borderRadius: 12,
                 border: '1.5px solid var(--border)', background: 'white',
                 fontWeight: 700, fontSize: '0.8rem', color: 'var(--text2)',
               }}
             >
-              Déjà fait
+              Plus tard
             </button>
           </div>
         </div>
       )}
 
-      {/* Alertes chat urgent + notifs */}
+      {/* Notifications non lues (cet appareil) */}
       {alertes.length > 0 && (
         <div style={{ marginBottom: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-            <span style={{ fontSize: '1.1rem' }}>🚨</span>
-            <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#CC3333' }}>Alertes</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ fontSize: '1.1rem' }}>🔔</span>
+              <span style={{ fontWeight: 700, fontSize: '0.9rem', color: '#118AB2' }}>Notifications</span>
+            </div>
+            <button type="button" onClick={() => navigate('/notifications')} style={{ background: 'none', border: 'none', fontSize: '0.75rem', fontWeight: 700, color: 'var(--orange)' }}>Tout →</button>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {alertes.map(a => (
-              <div key={a.id} style={{ background: '#FFE8E8', border: '1.5px solid #FF6B6B', borderRadius: 12, padding: '12px 14px' }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                  <span style={{ fontSize: '1rem', flexShrink: 0 }}>{a._type === 'notif' ? '🔔' : '🚨'}</span>
-                  <div style={{ flex: 1 }}>
-                    {a._type === 'notif' && <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#CC3333', marginBottom: 2 }}>{a.titre}</div>}
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text)', lineHeight: 1.4 }}>{a._type === 'notif' ? a.message : a.contenu}</p>
-                    <div style={{ fontSize: '0.7rem', color: 'var(--text2)', marginTop: 4 }}>
-                      {a._type === 'chat' && a.auteur && <span>👤 {a.auteur} · </span>}
-                      {new Date(a.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                </div>
+              <div
+                key={a.id}
+                onClick={() => navigate('/notifications')}
+                style={{ background: '#E8F4FF', border: '1.5px solid #118AB2', borderRadius: 12, padding: '12px 14px', cursor: 'pointer' }}
+              >
+                <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#118AB2', marginBottom: 2 }}>{a.titre}</div>
+                {a.message && <p style={{ fontSize: '0.82rem', color: 'var(--text)', lineHeight: 1.4 }}>{a.message}</p>}
               </div>
             ))}
           </div>
@@ -193,26 +181,6 @@ export default function Accueil() {
               <div>
                 <div style={{ fontWeight: 700, fontSize: '0.85rem', color: '#CC6600' }}>Alerte matériel</div>
                 <div style={{ fontSize: '0.78rem', color: '#CC6600' }}>{a.nom}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Notifications */}
-      {notifs.length > 0 && (
-        <div style={{ marginBottom: 20 }}>
-          {notifs.map(n => (
-            <div key={n.id} onClick={() => navigate('/notifications')} style={{
-              background: n.type === 'urgent' ? '#FFE8E8' : '#E8F4FF',
-              border: `2px solid ${n.type === 'urgent' ? '#FF6B6B' : '#74B9FF'}`,
-              borderRadius: 14, padding: '12px 16px', marginBottom: 8,
-              display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer',
-            }}>
-              <span style={{ fontSize: '1.3rem' }}>{n.type === 'urgent' ? '🚨' : '🔔'}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 700, fontSize: '0.85rem' }}>{n.titre}</div>
-                <div style={{ fontSize: '0.75rem', color: 'var(--text2)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{n.message}</div>
               </div>
             </div>
           ))}

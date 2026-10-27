@@ -3,6 +3,12 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 import { notifyTeam } from '../lib/notify'
+import {
+  withLocalRead,
+  markNotifReadLocal,
+  markNotifsReadLocal,
+  countUnreadLocal,
+} from '../lib/notifLocal'
 
 export default function Notifications() {
   const navigate = useNavigate()
@@ -13,20 +19,29 @@ export default function Notifications() {
   const [form, setForm] = useState({ titre: '', message: '', type: 'info' })
   const [saving, setSaving] = useState(false)
 
-  useEffect(() => { 
+  useEffect(() => {
     fetchNotifs()
-    return () => { markAllRead() }
   }, [])
 
   async function fetchNotifs() {
     setLoading(true)
     const { data } = await supabase.from('notifications').select('*').order('created_at', { ascending: false })
-    setNotifs(data || [])
+    setNotifs(withLocalRead(data || []))
     setLoading(false)
   }
 
-  async function markAllRead() {
-    await supabase.from('notifications').update({ lue: true }).eq('lue', false)
+  function markAllReadLocal() {
+    markNotifsReadLocal(notifs.map(n => n.id))
+    setNotifs(ns => ns.map(n => ({ ...n, lue_locale: true })))
+    // Prévenir le badge Layout
+    window.dispatchEvent(new Event('milcolor-notifs-read'))
+  }
+
+  function openNotif(n) {
+    markNotifReadLocal(n.id)
+    setNotifs(ns => ns.map(x => x.id === n.id ? { ...x, lue_locale: true } : x))
+    window.dispatchEvent(new Event('milcolor-notifs-read'))
+    if (n.lien) navigate(n.lien)
   }
 
   async function saveNotif() {
@@ -44,6 +59,8 @@ export default function Notifications() {
     fetchNotifs()
   }
 
+  const unread = countUnreadLocal(notifs)
+
   const TYPES = {
     info: { icon: '🔔', bg: '#E8F4FF', color: '#118AB2', label: 'Info' },
     urgent: { icon: '🚨', bg: '#FFE8E8', color: '#CC3333', label: 'Urgent' },
@@ -55,14 +72,27 @@ export default function Notifications() {
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
         <div>
           <h1 style={{ fontSize: '1.6rem' }}>🔔 Notifications</h1>
-          <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>Messages du directeur</p>
+          <p style={{ color: 'var(--text2)', fontSize: '0.85rem', marginTop: 2 }}>
+            {unread > 0 ? `${unread} non lue${unread > 1 ? 's' : ''} sur cet appareil` : 'Messages du directeur'}
+          </p>
         </div>
-        {isAdmin && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button onClick={async () => { if (!confirm('Supprimer toutes les notifications ?')) return; await supabase.from('notifications').delete().neq('id', '00000000-0000-0000-0000-000000000000'); fetchNotifs() }} style={{ padding: '8px 12px', borderRadius: 10, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.8rem' }}>🗑 Tout supprimer</button>
-            <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Envoyer</button>
-          </div>
-        )}
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+          {unread > 0 && (
+            <button
+              type="button"
+              onClick={markAllReadLocal}
+              style={{ padding: '8px 12px', borderRadius: 10, background: 'var(--bg)', border: '1.5px solid var(--border)', fontWeight: 700, fontSize: '0.78rem', color: 'var(--text2)' }}
+            >
+              Tout lu ici
+            </button>
+          )}
+          {isAdmin && (
+            <>
+              <button onClick={async () => { if (!confirm('Supprimer toutes les notifications ?')) return; await supabase.from('notifications').delete().neq('id', '00000000-0000-0000-0000-000000000000'); fetchNotifs() }} style={{ padding: '8px 12px', borderRadius: 10, background: '#fff0f0', border: '1.5px solid #f5c6cb', color: '#e74c3c', fontWeight: 700, fontSize: '0.8rem' }}>🗑</button>
+              <button className="btn btn-primary" onClick={() => setShowForm(true)}>+ Envoyer</button>
+            </>
+          )}
+        </div>
       </div>
 
       {loading && <div className="spinner" />}
@@ -77,8 +107,18 @@ export default function Notifications() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {notifs.map(n => {
           const t = TYPES[n.type] || TYPES.info
+          const unreadLocal = !n.lue_locale
           return (
-            <div key={n.id} onClick={() => n.lien && navigate(n.lien)} style={{ background: n.lue ? 'white' : t.bg, border: `2px solid ${n.lue ? 'var(--border)' : t.color}`, borderRadius: 14, padding: '14px 16px', cursor: n.lien ? 'pointer' : 'default' }}>
+            <div
+              key={n.id}
+              onClick={() => openNotif(n)}
+              style={{
+                background: unreadLocal ? t.bg : 'white',
+                border: `2px solid ${unreadLocal ? t.color : 'var(--border)'}`,
+                borderRadius: 14, padding: '14px 16px',
+                cursor: 'pointer',
+              }}
+            >
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                 <div style={{ display: 'flex', gap: 10, flex: 1 }}>
                   <span style={{ fontSize: '1.3rem', flexShrink: 0 }}>{t.icon}</span>
@@ -88,10 +128,17 @@ export default function Notifications() {
                     {n.lien && <span style={{ fontSize: '0.75rem', color: t.color, fontWeight: 700, marginTop: 4, display: 'inline-block' }}>Voir →</span>}
                     <div style={{ fontSize: '0.72rem', color: 'var(--text2)', marginTop: 6 }}>
                       {new Date(n.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                      {unreadLocal ? ' · Non lue' : ' · Lue'}
                     </div>
                   </div>
                 </div>
-                {isAdmin && <button onClick={() => deleteNotif(n.id)} style={{ background: 'none', border: 'none', color: 'var(--text2)', opacity: 0.4, flexShrink: 0 }}>🗑</button>}
+                {isAdmin && (
+                  <button
+                    type="button"
+                    onClick={e => { e.stopPropagation(); deleteNotif(n.id) }}
+                    style={{ background: 'none', border: 'none', color: 'var(--text2)', opacity: 0.4, flexShrink: 0 }}
+                  >🗑</button>
+                )}
               </div>
             </div>
           )
@@ -108,15 +155,15 @@ export default function Notifications() {
             <label style={lStyle}>Type</label>
             <div style={{ display: 'flex', gap: 8, marginBottom: 16 }}>
               {Object.entries(TYPES).map(([key, t]) => (
-                <button key={key} onClick={() => setForm(f => ({...f, type: key}))} style={{ flex: 1, padding: '10px 8px', borderRadius: 10, border: `2px solid ${form.type === key ? t.color : 'var(--border)'}`, background: form.type === key ? t.bg : 'white', fontWeight: 700, fontSize: '0.78rem', color: form.type === key ? t.color : 'var(--text)' }}>
+                <button key={key} onClick={() => setForm(f => ({ ...f, type: key }))} style={{ flex: 1, padding: '10px 8px', borderRadius: 10, border: `2px solid ${form.type === key ? t.color : 'var(--border)'}`, background: form.type === key ? t.bg : 'white', fontWeight: 700, fontSize: '0.78rem', color: form.type === key ? t.color : 'var(--text)' }}>
                   {t.icon} {t.label}
                 </button>
               ))}
             </div>
             <label style={lStyle}>Titre *</label>
-            <input value={form.titre} onChange={e => setForm(f=>({...f,titre:e.target.value}))} placeholder="ex: Planning modifié" style={iStyle} />
-            <label style={lStyle}>Message (optionnel)</label>
-            <textarea value={form.message} onChange={e => setForm(f=>({...f,message:e.target.value}))} placeholder="Détails supplémentaires…" rows={3} style={{...iStyle, resize: 'vertical'}} />
+            <input value={form.titre} onChange={e => setForm(f => ({ ...f, titre: e.target.value }))} placeholder="ex: Planning modifié" style={iStyle} />
+            <label style={lStyle}>Message</label>
+            <textarea value={form.message} onChange={e => setForm(f => ({ ...f, message: e.target.value }))} placeholder="Détails…" rows={3} style={{ ...iStyle, resize: 'vertical' }} />
             <button className="btn btn-primary" style={{ width: '100%', padding: '14px', opacity: (!form.titre || saving) ? 0.6 : 1 }} onClick={saveNotif} disabled={!form.titre || saving}>
               {saving ? '⏳ Envoi…' : '📤 Envoyer à tous'}
             </button>
