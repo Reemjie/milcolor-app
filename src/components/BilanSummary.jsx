@@ -8,12 +8,39 @@ import {
   alertFlags,
 } from '../lib/bilan'
 
+/** Badge lu / non lu — visible animateurs + directeur. */
+export function BilanVuBadge({ b, compact = false }) {
+  if (b?.vu) {
+    return (
+      <span style={{
+        fontSize: compact ? '0.68rem' : '0.72rem', fontWeight: 700,
+        padding: '2px 8px', borderRadius: 20,
+        background: '#E0FBF1', color: '#0A7A5A',
+      }}>
+        ✓ Lu{b.vu_at ? ` · ${new Date(b.vu_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}` : ''}
+      </span>
+    )
+  }
+  return (
+    <span style={{
+      fontSize: compact ? '0.68rem' : '0.72rem', fontWeight: 700,
+      padding: '2px 8px', borderRadius: 20,
+      background: '#FFF3E0', color: '#CC6600',
+    }}>
+      ○ Non lu
+    </span>
+  )
+}
+
 /** Aperçu compact pour listes. */
 export function BilanListPreview({ b }) {
   const flags = alertFlags(b)
   const avg = avgScore(b.scores)
   return (
     <div>
+      <div style={{ marginTop: 6 }}>
+        <BilanVuBadge b={b} compact />
+      </div>
       {isNewFormat(b) ? (
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
           {avg != null && (

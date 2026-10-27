@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { notifyTeam } from '../lib/notify'
+import { useAuth } from '../lib/auth'
 import {
   SCORE_ITEMS,
   CHECK_ITEMS,
@@ -12,9 +13,11 @@ import {
   checksComplete,
   legacyFromStructured,
   scoreColor,
+  setBilanVu,
 } from '../lib/bilan'
 import { dismissBilanRappel } from '../lib/bilanRappel'
 import { getIdentity, setIdentity } from '../lib/identity'
+import { BilanVuBadge } from '../components/BilanSummary'
 
 const TRANCHES = ['3-5 ans', '6-11 ans', 'Mixte']
 const NOTES_ROW1 = [1, 2, 3, 4, 5]
@@ -23,6 +26,7 @@ const NOTES_ROW2 = [6, 7, 8, 9, 10]
 export default function Bilan() {
   const { id } = useParams()
   const navigate = useNavigate()
+  const { isAdmin } = useAuth()
   const isEdit = !!id
   const moi = getIdentity()
   const [saving, setSaving] = useState(false)
@@ -39,6 +43,8 @@ export default function Bilan() {
   const [checks, setChecks] = useState(emptyChecks())
   const [activites, setActivites] = useState('')
   const [notesDirecteur, setNotesDirecteur] = useState('')
+  const [vu, setVu] = useState(false)
+  const [vuAt, setVuAt] = useState(null)
 
   useEffect(() => { if (isEdit) fetchBilan() }, [id])
 
@@ -52,6 +58,8 @@ export default function Bilan() {
       setTranche(data.tranche_age || '3-5 ans')
       setActivites(data.activites_realisees || '')
       setNotesDirecteur(data.notes_directeur || '')
+      setVu(!!data.vu)
+      setVuAt(data.vu_at || null)
       if (data.scores && Object.keys(data.scores).length) {
         const n = normalizeScores(data.scores)
         setScores({ ambiance: n.ambiance, activites: n.activites, deroulement: n.deroulement })
@@ -72,6 +80,14 @@ export default function Bilan() {
       }
     }
     setLoading(false)
+  }
+
+  async function toggleVu() {
+    if (!isEdit || !isAdmin) return
+    const next = !vu
+    await setBilanVu(supabase, id, next)
+    setVu(next)
+    setVuAt(next ? new Date().toISOString() : null)
   }
 
   function setScore(key, n) {
@@ -134,6 +150,37 @@ export default function Bilan() {
           </p>
         </div>
       </div>
+
+      {isEdit && (
+        <div style={{
+          marginBottom: 14, padding: '12px 14px', borderRadius: 12,
+          background: vu ? '#E0FBF1' : '#FFF3E0',
+          border: `1.5px solid ${vu ? '#06D6A0' : '#FFD4A8'}`,
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+        }}>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: '0.88rem', color: vu ? '#0A7A5A' : '#CC6600' }}>
+              {vu ? 'Lu par le directeur' : 'Pas encore lu par le directeur'}
+            </div>
+            {vu && vuAt && (
+              <div style={{ fontSize: '0.72rem', color: 'var(--text2)', marginTop: 2 }}>
+                {new Date(vuAt).toLocaleString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+              </div>
+            )}
+          </div>
+          {isAdmin ? (
+            <button type="button" onClick={toggleVu} style={{
+              padding: '8px 12px', borderRadius: 10, fontWeight: 800, fontSize: '0.78rem',
+              border: `2px solid ${vu ? '#06D6A0' : 'var(--border)'}`,
+              background: 'white', color: vu ? '#0A7A5A' : 'var(--text2)',
+            }}>
+              {vu ? '✓ Vu' : 'Marquer vu'}
+            </button>
+          ) : (
+            <BilanVuBadge b={{ vu, vu_at: vuAt }} />
+          )}
+        </div>
+      )}
 
       {/* Activités — obligatoire, tout en haut */}
       <section className="card" style={{ padding: 16, marginBottom: 14 }}>

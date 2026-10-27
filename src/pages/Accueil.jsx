@@ -2,9 +2,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { useState, useEffect } from 'react'
 import { supabase } from '../lib/supabase'
-import { BilanDetail, BilanListPreview } from '../components/BilanSummary'
+import { BilanDetail, BilanListPreview, BilanVuBadge } from '../components/BilanSummary'
 import BilanJourDirecteur from '../components/BilanJourDirecteur'
-import { alertFlags } from '../lib/bilan'
+import { alertFlags, setBilanVu } from '../lib/bilan'
 import { shouldShowBilanRappel, dismissBilanRappel } from '../lib/bilanRappel'
 
 export default function Accueil() {
@@ -54,6 +54,13 @@ export default function Accueil() {
     await supabase.from('bilans').update({ notes_directeur: note }).eq('id', id)
     setSavingNote(false)
     setBilanOuvert(null)
+    fetchBilans()
+  }
+
+  async function toggleVu(b) {
+    const next = !b.vu
+    await setBilanVu(supabase, b.id, next)
+    setBilanOuvert(prev => prev?.id === b.id ? { ...prev, vu: next, vu_at: next ? new Date().toISOString() : null } : prev)
     fetchBilans()
   }
 
@@ -285,9 +292,24 @@ export default function Accueil() {
               <h2 style={{ fontSize: '1.2rem' }}>📋 {bilanOuvert.prenom} {bilanOuvert.nom}</h2>
               <button onClick={() => setBilanOuvert(null)} style={{ background: 'var(--bg)', border: 'none', borderRadius: 8, padding: '6px 12px', fontWeight: 700 }}>✕</button>
             </div>
-            <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 16 }}>
+            <p style={{ fontSize: '0.78rem', color: 'var(--text2)', marginBottom: 12 }}>
               📅 {new Date(bilanOuvert.jour + 'T00:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })} · {bilanOuvert.tranche_age}
             </p>
+
+            <button
+              type="button"
+              onClick={() => toggleVu(bilanOuvert)}
+              style={{
+                width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                gap: 10, padding: '12px 14px', borderRadius: 12, marginBottom: 16,
+                border: `2px solid ${bilanOuvert.vu ? '#06D6A0' : 'var(--border)'}`,
+                background: bilanOuvert.vu ? '#E0FBF1' : 'var(--bg)',
+                fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
+              }}
+            >
+              <span>{bilanOuvert.vu ? '✓ Bilan vu' : '○ Marquer comme vu'}</span>
+              <BilanVuBadge b={bilanOuvert} />
+            </button>
 
             <BilanDetail b={bilanOuvert} />
 

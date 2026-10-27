@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { avgScore, alertFlags, scoreColor } from '../lib/bilan'
+import { BilanVuBadge } from './BilanSummary'
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10)
@@ -13,6 +14,7 @@ export default function BilanJourDirecteur({ bilans = [], onOpen, showAllLink = 
   const today = todayISO()
   const duJour = bilans.filter(b => b.jour === today)
   const withAlert = duJour.filter(b => alertFlags(b).length > 0)
+  const nonLus = duJour.filter(b => !b.vu).length
 
   return (
     <div style={{
@@ -26,6 +28,11 @@ export default function BilanJourDirecteur({ bilans = [], onOpen, showAllLink = 
           </div>
           <div style={{ fontSize: '0.75rem', color: 'var(--text2)', marginTop: 2, textTransform: 'capitalize' }}>
             {new Date(today + 'T12:00:00').toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {duJour.length > 0 && (
+              <span style={{ marginLeft: 6, color: nonLus ? '#CC6600' : '#0A7A5A', fontWeight: 700 }}>
+                · {nonLus === 0 ? 'tous lus' : `${nonLus} non lu${nonLus > 1 ? 's' : ''}`}
+              </span>
+            )}
           </div>
         </div>
         <span style={{
@@ -52,16 +59,18 @@ export default function BilanJourDirecteur({ bilans = [], onOpen, showAllLink = 
                 onClick={() => (onOpen ? onOpen(b) : navigate(`/bilans/${b.id}`))}
                 style={{
                   textAlign: 'left', padding: '10px 12px', borderRadius: 12,
-                  border: flags.includes('incident') ? '1.5px solid #FF6B6B' : '1.5px solid var(--border)',
-                  background: flags.includes('incident') ? '#FFF5F5' : 'var(--bg)',
+                  border: flags.includes('incident') ? '1.5px solid #FF6B6B' : (b.vu ? '1.5px solid var(--border)' : '1.5px solid #FFD4A8'),
+                  background: flags.includes('incident') ? '#FFF5F5' : (b.vu ? 'var(--bg)' : '#FFFBF5'),
                   cursor: 'pointer',
+                  opacity: b.vu ? 0.85 : 1,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 8, alignItems: 'center' }}>
                   <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{b.prenom} {b.nom}</span>
-                  <span style={{ fontSize: '0.72rem', color: 'var(--text2)' }}>{b.tranche_age}</span>
+                  <BilanVuBadge b={b} compact />
                 </div>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 4, alignItems: 'center' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text2)' }}>{b.tranche_age}</span>
                   {avg != null && (
                     <span style={{ fontSize: '0.72rem', fontWeight: 800, color: scoreColor(avg) }}>★ {avg}/10</span>
                   )}

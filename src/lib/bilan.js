@@ -91,6 +91,14 @@ export function isNewFormat(b) {
   return !!(b?.scores && Object.keys(b.scores).length) || !!(b?.checks && Object.keys(b.checks).length)
 }
 
+/** Marque un bilan comme vu / non vu (directeur). */
+export async function setBilanVu(supabase, id, vu) {
+  return supabase.from('bilans').update({
+    vu: !!vu,
+    vu_at: vu ? new Date().toISOString() : null,
+  }).eq('id', id)
+}
+
 export function alertFlags(b) {
   const flags = []
   if (isNewFormat(b)) {

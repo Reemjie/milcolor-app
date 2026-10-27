@@ -4,7 +4,7 @@ import { useAuth } from '../lib/auth'
 import { supabase } from '../lib/supabase'
 import { BilanListPreview } from '../components/BilanSummary'
 import BilanJourDirecteur from '../components/BilanJourDirecteur'
-import { alertFlags } from '../lib/bilan'
+import { alertFlags, setBilanVu } from '../lib/bilan'
 
 export default function BilansList() {
   const { isAdmin } = useAuth()
@@ -25,6 +25,12 @@ export default function BilansList() {
   async function deleteBilan(id) {
     if (!confirm('Supprimer ce bilan ?')) return
     await supabase.from('bilans').delete().eq('id', id)
+    fetchBilans()
+  }
+
+  async function toggleVu(e, b) {
+    e.stopPropagation()
+    await setBilanVu(supabase, b.id, !b.vu)
     fetchBilans()
   }
 
@@ -115,7 +121,8 @@ export default function BilansList() {
               return (
               <div key={b.id} className="card" style={{
                 padding: '14px 16px', cursor: 'pointer',
-                border: flags.includes('incident') ? '2px solid #FF6B6B' : undefined,
+                border: flags.includes('incident') ? '2px solid #FF6B6B' : (b.vu ? undefined : '2px solid #FFD4A8'),
+                opacity: b.vu ? 0.92 : 1,
               }} onClick={() => navigate(`/bilans/${b.id}`)}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
                   <div style={{ flex: 1 }}>
@@ -130,7 +137,22 @@ export default function BilansList() {
                     </div>
                     <BilanListPreview b={b} />
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6, flexShrink: 0, alignItems: 'flex-end' }}>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={e => toggleVu(e, b)}
+                        title={b.vu ? 'Marquer non lu' : 'Marquer vu'}
+                        style={{
+                          padding: '6px 10px', borderRadius: 8, fontWeight: 800, fontSize: '0.72rem',
+                          border: `1.5px solid ${b.vu ? '#06D6A0' : 'var(--border)'}`,
+                          background: b.vu ? '#E0FBF1' : 'white',
+                          color: b.vu ? '#0A7A5A' : 'var(--text2)',
+                        }}
+                      >
+                        {b.vu ? '✓ Vu' : 'Vu ?'}
+                      </button>
+                    )}
                     {isAdmin && (
                       <button onClick={e => { e.stopPropagation(); deleteBilan(b.id) }} style={{ background: 'none', border: 'none', color: 'var(--text2)', opacity: 0.4, fontSize: '0.9rem' }}>🗑</button>
                     )}
